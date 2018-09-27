@@ -1,0 +1,53 @@
+{
+  "name": "datashoplogger",
+  "version": "0.1.0",
+  "main": "lib/datashoplogger.js",
+  "license": "MIT",
+  "description": "A reference implementation of a client-side library that exposes an API that logs to DataShop",
+  "repository": {
+    "type": "git",
+    "url": "Simon-Initiative/DataShopLogger.git"
+  },
+  "keywords": [
+    "webpack",
+    "es6",
+    "library",
+    "cmu",
+    "ctat",
+    "oli",
+    "eberly",
+    "simon initiative",
+    "datashop",
+    "logging"
+  ],
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1",
+    "chai": "^3.5.0",
+    "clean-webpack-plugin": "^0.1.17",
+    "eslint": "^3.19.0",
+    "eslint-loader": "^1.7.1",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "file-loader": "^1.1.6",
+    "jquery": "^3.3.0",
+    "mocha": "^5.2.0",
+    "url-loader": "^0.6.2",
+    "webpack": "^3.1.0",
+    "webpack-merge": "^4.1.1"
+  },
+  "scripts": {
+    "build": "webpack -p --config webpack.prod.js",
+    "dev": "webpack --progress --colors --watch --config webpack.dev.js",
+    "test": "mocha --require babel-core/register --colors ./test/*.spec.js || true",
+    "test:watch": "mocha --require babel-core/register --colors -w ./test/*.spec.js || true",
+    "clean": "rm -rf lib/*.js && rm -rf lib/*.map && rm -rf node_modules && rm -rf *~ && find . -type f -name '*.DS_Store' -delete"
+  },
+  "dependencies": {
+    "npm": "^6.4.1"
+  }
+}
