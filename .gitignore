@@ -1,0 +1,9 @@
+/node_modules
+/benchmark/js
+/benchmark/fixtures
+/coverage
+.DS_Store
+*.log
+.idea
+.vscode
+.eslintcache
