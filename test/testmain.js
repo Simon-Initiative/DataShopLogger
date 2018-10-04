@@ -11,5 +11,12 @@ export default function() {
 
   var base=new SimonBase ("SimonBase","instance");
 
+  try {
+    base.simondebug ("Test message");
+  } catch (err) {
+    console.log (err.message);
+    return (false);
+  }
+
   return (true);
 }

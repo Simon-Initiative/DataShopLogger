@@ -12,29 +12,29 @@ export default class SimonBase {
 	}
 
 	getClassName () {
-    return (className);
+    return (this.className);
 	}
 
 	// A lot of people accidentally use the function above with a lowercase N. Hence
 	// this backup
 	getClassname () {
-    return (className);
+    return (this.className);
 	}
 
 	setClassName(aClass) {
-    className=aClass;
+    this.className=aClass;
 	}
 
   setName (sName) {
-	  name=sName;
+	  this.name=sName;
 	}
 
 	getName () {
-    return (name);
+    return (this.name);
 	}
 
 	getUseDebugging() {
-    return (useDebugging);
+    return (this.useDebugging);
 	}
 
   setUseDebugging(aValue) {
@@ -62,20 +62,20 @@ export default class SimonBase {
 	*/
 	simondebug (msg) {
 	  if(!useDebugging) {
-        //console.log ("Logging disabled!");
-		return;
-	  }
+      //console.log ("Logging disabled!");
+		  return;
+   	}
 
 	  var aMessage=msg;
 
 	  if (useDebuggingBasic) {
-        this.simondebugInternal (aMessage,"UnknownClass");
-		return;
-      }
+      this.simondebugInternal (aMessage,"UnknownClass");
+		  return;
+    }
 
-      if (msg===null) {
-        aMessage="No message provided";
-      }
+    if (msg===null) {
+      aMessage="No message provided";
+    }
 		
 	  this.simondebugInternal (aMessage,this.getClassName());
 	}
@@ -96,9 +96,9 @@ export default class SimonBase {
 
 	  for (var property in object) {
 	    //output += property + ': ' + object[property]+'; \n ';
-		this.simondebug ("("+index+")" + property + ': ' + object[property]);
+		  this.simondebug ("("+index+")" + property + ': ' + object[property]);
 
-		index++;
+		  index++;
 	  }
 	}
 
@@ -111,16 +111,16 @@ export default class SimonBase {
 
 	  if (aMessage===null || aMessage===undefined) {
         aMessage="No message!";
-      }
+    }
 
-      if (aMessage==="") {
+    if (aMessage==="") {
 	    aMessage="Empty message!";
 	  }
 
-      if (useDebuggingBasic) {
+    if (useDebuggingBasic) {
 	    txt=formatLogMessage ("Unknown","undefined",aMessage);
 
-		if (!SimonBase.customconsole) {
+		  if (!SimonBase.customconsole) {
           SimonBase.customconsole=getSafeElementById('customconsole');
         }
 

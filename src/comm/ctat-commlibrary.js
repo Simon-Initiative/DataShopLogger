@@ -42,35 +42,35 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	setUseCommSettings (aValue) {
-		useCommSettings=aValue;
+		this.useCommSettings=aValue;
 	}
 
 	/**
 	*
 	*/
 	getUseCommSettings () {
-		return (useCommSettings);
+		return (this.useCommSettings);
 	}
 
 	/**
 	*
 	*/
 	setConnectionRefusedMessage (aValue) {
-		connectionRefusedMessage=aValue;
+		this.connectionRefusedMessage=aValue;
 	}
 
 	/**
 	*
 	*/
 	setSocketType (aType) {
-		socketType=aType;
+		this.socketType=aType;
 	}
 
 	/**
 	*
 	*/
 	getSocketType () {
-		return (socketType);
+		return (this.socketType);
 	}
 
 	/**
@@ -79,14 +79,14 @@ export default class CTATCommLibrary extends SimonBase {
 	 * @param {} aHandler an object having a function property processMessage() that accepts the response body
 	 */
 	assignHandler (aHandler) {
-		httphandler=aHandler;
+		this.httphandler=aHandler;
 	}
 
 	/**
 	*
 	*/
 	assignMessageListener (aListener) {
-		messageListener=aListener;
+		this.messageListener=aListener;
 	}
 
 	/**

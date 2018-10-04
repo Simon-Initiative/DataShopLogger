@@ -1,6 +1,7 @@
 
 import testmain from './testmain.js';
 import testlibrary from './testlibrary.js';
+import testsender from './testlogsend.js';
 import { expect } from 'chai';
 
 describe("testmain", () => {
@@ -13,8 +14,16 @@ describe("testmain", () => {
 
 describe("testlibrary", () => {
     context("When bootstrapping the LoggingLibrary", () => {
-        it("connects to datashop", () => {
+        it("it initializes", () => {
             expect(testlibrary()).to.equal(true);
+        });
+    });
+});
+
+describe("testsender", () => {
+    context("When sending with the LoggingLibrary", () => {
+        it("it works", () => {
+            expect(testsender()).to.equal(true);
         });
     });
 });

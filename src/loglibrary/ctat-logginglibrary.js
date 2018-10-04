@@ -1,10 +1,3 @@
-
-//import $ from 'jquery';
-import '../simon-lms-tools.js';
-import SimonBase from '../simon-base.js';
-import CTATLogMessageBuilder from './ctat-logmessagebuilder.js'
-import OLILogLibraryBase from './oli-loglibrarybase.js'
-
 /*
  Notes:
 
@@ -13,8 +6,14 @@ import OLILogLibraryBase from './oli-loglibrarybase.js'
 	status=failure
 	cause=NOT_AUTHENTICATED
 	message=com.beginmind.login.service.InvalidSessionException: invalid session token
-
 */
+
+//import $ from 'jquery';
+import * as tools from '../simon-lms-tools.js';
+import SimonBase from '../simon-base.js';
+import CTATLogMessageBuilder from './ctat-logmessagebuilder.js'
+import OLILogLibraryBase from './oli-loglibrarybase.js'
+import CTATCommLibrary from '../comm/ctat-commlibrary.js'
 
 var loggingDisabled=false; // Be very careful with this flag, it will do a hard disable on logging!
 
@@ -67,12 +66,12 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		
 		//var gen=new CTATGuid ();
 		//this.userid=SimonGuid.guid ();
-		this.userid=uuidv4();
+		this.userid=tools.uuidv4();
 
 		if ((anInternalUsage!=undefined) && (anInternalUsage!=null)) {
-			useInternal=anInternalUsage;
+			this.useInternal=anInternalUsage;
 
-			if (useInternal==false) {
+			if (this.useInternal==false) {
 				CTATLogMessageBuilder.commLogMessageBuilder=new CTATLogMessageBuilder ();
 			}
 		} else {
@@ -80,10 +79,10 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		}
 
 		this.loggingCommLibrary=new CTATCommLibrary ();
-		loggingCommLibrary.setName ("commLoggingLibrary");
-		loggingCommLibrary.setUseCommSettings (false);
-		loggingCommLibrary.setConnectionRefusedMessage ("ERROR_CONN_LS");
-		loggingCommLibrary.assignHandler (this);
+		this.loggingCommLibrary.setName ("commLoggingLibrary");
+		this.loggingCommLibrary.setUseCommSettings (false);
+		this.loggingCommLibrary.setConnectionRefusedMessage ("ERROR_CONN_LS");
+		this.loggingCommLibrary.assignHandler (this);
 	}
 
 	/**
