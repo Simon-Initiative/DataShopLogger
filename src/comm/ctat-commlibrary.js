@@ -321,7 +321,7 @@ export default class CTATCommLibrary extends SimonBase {
 			formatted=("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+aMessage);
 		}
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 
 		if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
 			this.send_post (url,formatted);
@@ -340,7 +340,7 @@ export default class CTATCommLibrary extends SimonBase {
 			formatted=("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+aMessage);
 		}
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 
 		this.ctatdebug ("Sending: " + formatted);
 
@@ -594,15 +594,15 @@ export default class CTATCommLibrary extends SimonBase {
 
 						stringDelivery.push (testObject.responseText);
 
-						if (messageListener!==null) {
-							messageListener.processIncoming (testObject.responseText);
+						if (this.messageListener!==null) {
+							this.messageListener.processIncoming (testObject.responseText);
 						}
 					} else {
-						pointer.ctatdebug ("Error: httphandler is null, can't process response!");
+						this.ctatdebug ("Error: httphandler is null, can't process response!");
 					}
 				} else if(httphandler && httphandler.processError) {
 					found=true;
-					pointer.ctatdebug ("Processing non-200 response, status "+testObject.status);
+					this.ctatdebug ("Processing non-200 response, status "+testObject.status);
 					httphandler.processError(testObject.status, testObject.responseText);
 				}
 

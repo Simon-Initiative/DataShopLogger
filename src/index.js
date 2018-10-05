@@ -1,5 +1,5 @@
 
-import './simon-global.js';
+//import './simon-global.js';
 import './simon-lms-tools.js';
 import SimonBase from './simon-base.js';
 import CTATXML from './xml.js';

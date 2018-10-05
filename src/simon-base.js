@@ -1,8 +1,8 @@
 
-import './simon-global.js'
+//import './simon-global.js'
 
-var useDebugging=false;
-var useDebuggingBasic=false;
+var useDebugging=true;
+var useDebuggingBasic=true;
 
 /**
  *

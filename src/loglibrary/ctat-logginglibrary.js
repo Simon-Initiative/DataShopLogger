@@ -374,6 +374,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 			}	
 		} else {
 			this.ctatdebug ("Use internal: " + this.useInternal);			
+			this.loggingCommLibrary.sendXMLNoBundle (message);
 		}
 	}
 
