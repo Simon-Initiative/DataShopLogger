@@ -21,35 +21,35 @@ export default class CTATConnectionBase extends SimonBase {
 	*
 	*/
 	setURL (aURL) {
-		url=aURL;
+		this.url=aURL;
 	}
 
 	/**
 	*
 	*/
 	getURL () {
-		return (url);
+		return (this.url);
 	}
 
 	/**
 	*
 	*/
 	setID (anID) {
-		id=anID;
+		this.id=anID;
 	}
 
 	/**
 	*
 	*/
 	getID () {
-		return (id);
+		return (this.id);
 	}
 
 	/**
 	*
 	*/
 	setSocketType (aType) {
-		socketType=aType;
+		this.socketType=aType;
 	}
 
 	/**

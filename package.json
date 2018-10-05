@@ -48,6 +48,7 @@
     "clean": "rm -rf lib/*.js && rm -rf lib/*.map && rm -rf node_modules && rm -rf *~ && find . -type f -name '*.DS_Store' -delete"
   },
   "dependencies": {
-    "npm": "^6.4.1"
+    "npm": "^6.4.1",
+    "xmlhttprequest": "^1.8.0"
   }
 }

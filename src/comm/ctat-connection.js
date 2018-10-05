@@ -1,6 +1,9 @@
 
 import CTATConnectionBase from './ctat-connectionbase.js';
 
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+var xhr = new XMLHttpRequest();
+
 /**
  * @param {object} substVars needs property session_id if no real flashVars
  */
@@ -9,23 +12,31 @@ export default class CTATConnection extends CTATConnectionBase {
   /**
   *
   */
-	constructor (substVars) {
+	constructor () {
 		super ("CTATConnection","ctatconnection");
 
-		this.substituteFlashVars = substVars;
+		//this.substituteFlashVars = substVars;
 
 		this.data=null;
 		this.httpObject=null;
 
 		this.consumed=false;
 		this.pointer = this;
+		this.caller = null;
 
 		this.receiveFunction=null;
 
 		this.contentType="text/plain";
 
-		pointer.setSocketType ("http");
-		pointer.createHTTPObject ();
+		this.setSocketType ("http");
+		this.createHTTPObject ();
+  }
+
+  /**
+  *
+  */
+  setCaller (aPointer) {
+  	this.caller=aPointer;
   }
 
 	/**
@@ -48,14 +59,14 @@ export default class CTATConnection extends CTATConnectionBase {
 	setConsumed (aVal) {
 		consumed=aVal;
 
-		pointer.ctatdebug ("consumed: " + consumed);
+		this.ctatdebug ("consumed: " + consumed);
 	}
 
 	/**
 	*
 	*/
 	getConsumed () {
-		pointer.ctatdebug ("consumed: " + consumed);
+		this.ctatdebug ("consumed: " + consumed);
 
 		return (consumed);
 	}
@@ -64,62 +75,64 @@ export default class CTATConnection extends CTATConnectionBase {
 	*
 	*/
 	assignReceiveFunction(aFunction) {
-		receiveFunction=aFunction;
+		this.receiveFunction=aFunction;
 
-		httpObject.onreadystatechange=aFunction;
+		this.httpObject.onreadystatechange=aFunction;
 	}
 
 	/**
 	*
 	*/
 	setData (aData) {
-		data=aData;
+		this.data=aData;
 	}
 
 	/**
 	*
 	*/
 	getData () {
-		return (data);
+		return (this.data);
 	}
 
 	/**
 	*
 	*/
 	getHTTPObject () {
-		return (httpObject);
+		return (this.httpObject);
 	}
 
 	/**
 	*
 	*/
   createHTTPObject () {
-		pointer.ctatdebug ("createHTTPObject ()");
+		this.ctatdebug ("createHTTPObject ()");
 
-		httpObject=new XMLHttpRequest();
+		this.httpObject=new XMLHttpRequest();
+    this.httpObject.caller=this.caller;
 
+    /*
 		if (window.XMLHttpRequest) {
-			pointer.ctatdebug ("Creating regular XMLHttpRequest ...");
+			this.ctatdebug ("Creating regular XMLHttpRequest ...");
 
-			httpObject=new XMLHttpRequest();
+			this.httpObject=new XMLHttpRequest();
 
 			if (httpObject.overrideMimeType) {
 				httpObject.overrideMimeType('text/html');
 			}
 		} else {
-			pointer.ctatdebug ("Trying alternative HTTP object creation ...");
+			this.ctatdebug ("Trying alternative HTTP object creation ...");
 
 			if (window.ActiveXObject) {
-				pointer.ctatdebug ("Detected window.ActiveXObject ...");
+				this.ctatdebug ("Detected window.ActiveXObject ...");
 
 				// IE
 				try {
-					pointer.ctatdebug ("Creating Msxml2.XMLHTTP ...");
+					this.ctatdebug ("Creating Msxml2.XMLHTTP ...");
 
 					httpObject=new ActiveXObject ("Msxml2.XMLHTTP");
 				} catch (e) {
 					try {
-						pointer.ctatdebug ("Creating Microsoft.XMLHTTP ...");
+						this.ctatdebug ("Creating Microsoft.XMLHTTP ...");
 
 						httpObject=new ActiveXObject("Microsoft.XMLHTTP");
 					} catch (e) {
@@ -130,6 +143,7 @@ export default class CTATConnection extends CTATConnectionBase {
 				alert ("Internal error: an HTTP connection object could not be created");
 			}
 		}
+		*/
 	}
 
 	/**
@@ -138,15 +152,17 @@ export default class CTATConnection extends CTATConnectionBase {
 	* not or is no longer usable"
 	*/
 	init () {
-		pointer.ctatdebug ("init ()");
+		this.ctatdebug ("init ()");
 
-		if (httpObject!==null) {
-			var fVars=(flashVars ? flashVars.getRawFlashVars () : substituteFlashVars);
+		if (this.httpObject!==null) {
+			//var fVars=(flashVars ? flashVars.getRawFlashVars () : substituteFlashVars);
 
-			var aSession=(fVars['session_id'] ? fVars['session_id'] : "dummySession");
+			//var aSession=(fVars['session_id'] ? fVars['session_id'] : "dummySession");
+
+			var aSession="dummySession";
 
 			if (aSession=='dummySession') {
-				pointer.ctatdebug ("Unable to find CTAT session information from environment, trying OLI ...");
+				this.ctatdebug ("Unable to find CTAT session information from environment, trying OLI ...");
 			}
 
 			try {
@@ -161,45 +177,49 @@ export default class CTATConnection extends CTATConnectionBase {
 				}
 				*/
 
-				httpObject.setRequestHeader ("Content-type",contentType);
+				this.httpObject.setRequestHeader ("Content-type",this.contentType);
 
 				//httpObject.setRequestHeader ("Access-Control-Allow-Origin","*");
 				//httpObject.setRequestHeader ("Access-Control-Allow-Headers","X-Custom-Header");
-				httpObject.setRequestHeader ("ctatsession",aSession);
+				this.httpObject.setRequestHeader ("ctatsession",aSession);
 			} catch (err) {
-				alert ("HTTP object creation error: " + err.message);
+				console.log ("HTTP object creation error: " + err.message);
 			}
 		} else {
-			alert ("Internal error: http object is null right after creation");
+			console.log ("Internal error: http object is null right after creation");
 		}
 
-		pointer.ctatdebug ("init () done");
+		this.ctatdebug ("init () done");
 	}
 
 	/**
 	*
 	*/
 	send () {
-		pointer.ctatdebug ("send ()");
+		this.ctatdebug ("send ()");
 
-		pointer.getHTTPObject ().onerror = function() {
-			pointer.ctatdebug ("Networking error!");
+		this.getHTTPObject ().onerror = function() {
+			this.ctatdebug ("Networking error!");
 		}
 
+    this.getHTTPObject ().open ('POST', this.getURL (), true);
+
+    /*
 		try {
-			pointer.getHTTPObject ().open ('POST', pointer.getURL (), true);
+			this.getHTTPObject ().open ('POST', this.getURL (), true);
 		} catch(err) {
-			pointer.ctatdebug ("Error in newConnection.httpObject.open: " + err.message);
+			this.ctatdebug ("Error in newConnection.httpObject.open: " + err.message);
 			return;
 		}
+		*/
 
-		pointer.init ();
+		this.init ();
 
 		try {
-			if (data) {
-				pointer.getHTTPObject ().send (data);
+			if (this.data) {
+				this.getHTTPObject ().send (this.data);
 			} else {
-				pointer.getHTTPObject ().send ();
+				this.getHTTPObject ().send ();
 			}
 		} catch(err) {
 			this.ctatdebug ("Error in newConnection.httpObject.send: " + err.message);

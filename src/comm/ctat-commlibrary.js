@@ -138,38 +138,18 @@ export default class CTATCommLibrary extends SimonBase {
 	/**
 	*
 	*/
-	createConnection (aVars,aURL) {
+	createConnection (aURL) {
 		this.ctatdebug ('createConnection ()');
 
 		if (!aURL) {
-			return (new CTATConnection (aVars));
+			return (new CTATConnection ());
 		}
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 		var	newConnection=null;
 
-		//if (vars ['tutoring_service_communication']=='websocket')
-		if (this.getSocketType ()=="websocket") {
-			// We need to find out if we already have a websocket object for the requested URL,
-			// otherwise we keep opening them over and over again
-			newConnection = this.findWSConnection(aURL);
-
-			if (!newConnection) {
-				newConnection=new CTATWSConnection (aVars);
-				newConnection.setID (httpreqindex);
-				newConnection.setURL (aURL);
-				newConnection.assignReceiveFunction (this.processWSReply);
-				newConnection.assignCloseFunction (this.processWSClose);
-
-				this.httprequests.push(newConnection);
-
-				this.httpreqindex++;
-			}
-			return (newConnection);
-		}
-
-		newConnection=new CTATConnection (aVars);
-		newConnection.setID (httpreqindex);
+		newConnection=new CTATConnection ();
+		newConnection.setID (this.httpreqindex);
 		newConnection.setURL (aURL);
 		newConnection.assignReceiveFunction (this.processReply);
 
@@ -178,29 +158,7 @@ export default class CTATCommLibrary extends SimonBase {
 
 		return (newConnection);
 	}
-	
-	/**
-	*	Find the websocket connection associated with the given URL
-	*	@param aUrl the url to match against
-	*	@returns the CTATWSConnection object, or null if no connection found
-	*/
-	findWSConnection (aURL) {
-		this.ctatdebug('findWSConnection( '+aURL+' )');
-
-		let sURL = this.editSocketURLForHTTPS(aURL);
-
-		for (let request=0; request<this.httprequests.length; request++)
-		{
-			var testConnection=this.httprequests [request];
-			this.ctatdebug('checking: socketType = '+testConnection.getSocketType ()+' URL = '+testConnection.getURL ());
-			if ((testConnection.getSocketType ()=="ws") && (testConnection.getURL ()==sURL))
-			{
-				return (testConnection);
-			}
-		}
-		return null;
-	}
-	
+		
 	/**
 	*
 	*/
@@ -302,6 +260,8 @@ export default class CTATCommLibrary extends SimonBase {
 
 		if (this.getUseCommSettings() && pointer.getSocketType ()=="javascript") {
 			this.send_post (url,formatted);
+		} else {
+			this.ctatdebug("bump");
 		}
 	}
 
@@ -323,8 +283,14 @@ export default class CTATCommLibrary extends SimonBase {
 
 		//var vars=flashVars.getRawFlashVars ();
 
-		if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
+		this.ctatdebug (this.getUseCommSettings());
+		this.ctatdebug (this.getSocketType());
+
+		//if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
+		if (this.getUseCommSettings() && this.getSocketType ()=="http") {
 			this.send_post (url,formatted);
+		} else {
+			this.ctatdebug("bump");
 		}
 	}
 
@@ -344,8 +310,11 @@ export default class CTATCommLibrary extends SimonBase {
 
 		this.ctatdebug ("Sending: " + formatted);
 
-		if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
+		//if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
+		if (this.getUseCommSettings() && this.getSocketType ()=="http") {
 			this.send_post (aURL,formatted);
+		} else {
+			this.ctatdebug("bump");
 		}
 	}
 
@@ -444,7 +413,7 @@ export default class CTATCommLibrary extends SimonBase {
 		}
 		*/
 
-		var newConnection=this.createConnection (CTATConfiguration.getRawFlashVars(),url);
+		var newConnection=this.createConnection (url);
 		newConnection.setContentType ("application/x-www-form-urlencoded");
 
 		this.httpreqindex++;
@@ -490,7 +459,7 @@ export default class CTATCommLibrary extends SimonBase {
 
 		this.ctatdebug ("Outoing on wire: " + data);
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 		var res=url;
 
 		//if (vars ['tutoring_service_communication']=='websocket')
@@ -502,7 +471,7 @@ export default class CTATCommLibrary extends SimonBase {
 			
 			this.ctatdebug('opening websocket connection to '+res);
 
-			newConnectionthis.createConnection (vars,res);
+			newConnectionthis.createConnection (res);
 
 			newConnection.setData (data);
 
@@ -513,22 +482,49 @@ export default class CTATCommLibrary extends SimonBase {
 			}
 		} else {
 			// This should always result in a new connection object
-			newConnection=pointer.createConnection (vars,res);
+			newConnection=this.createConnection (res);
 			newConnection.setData (data);  // or CTATCommLibrary.addAuthenticityToken(data)
 
-			if (messageListener!==null) {
-				messageListener.processOutgoing (data);
+			if (this.messageListener!==null) {
+				this.messageListener.processOutgoing (data);
 			}
 		}
 
+    newConnection.setCaller(this);
 		newConnection.send ();
 	}
 
+  /**
+  * https://www.w3schools.com/js/js_ajax_http.asp
+  */
+  debugHTTPObject (anObject) {
+		console.log ("status: " + anObject.status);
+		console.log ("readyState: " + anObject.readyState);
+		console.log ("responseText: " + anObject.responseText);
+		console.log ("responseXML: " + anObject.responseXML);
+		console.log ("statusText: " + anObject.statusText);
+  }
+ 
 	/**
-	*
+	* https://www.w3schools.com/js/js_ajax_http.asp
 	*/
 	processReply (argument) {
-		this.ctatdebug ('processReply ('+httprequests.length+','+argument+')');
+    console.log ("processReply ()");
+
+    //this.debugHTTPObject (anObject);
+
+    if (this.readyState!=4) {
+    	console.log ("Response not ready yet");
+		  return;
+		}
+
+		console.log ("status: " + this.status);
+		console.log ("readyState: " + this.readyState);
+		/*
+		console.log ("responseText: " + this.responseText);
+		console.log ("responseXML: " + this.responseXML);
+		console.log ("statusText: " + this.statusText);		
+    */
 
 		var i=0;
 		var found=false;
@@ -536,8 +532,10 @@ export default class CTATCommLibrary extends SimonBase {
 
 		var request=0;
 
-		for (request=0;request<httprequests.length;request++) {
-			var testConnection=httprequests [request];
+		console.log ("Testing " + this.caller.httprequests.length + " request objects");
+
+		for (request=0;request<this.caller.httprequests.length;request++) {
+			var testConnection=this.caller.httprequests [request];
 			var testObject=testConnection.getHTTPObject ();
 
 			this.ctatdebug ("Testing connection entry " + request + ", readyState: " + testObject.readyState + ", consumed: "+ testConnection.getConsumed () + ", status: " + testObject.status);
@@ -648,48 +646,6 @@ export default class CTATCommLibrary extends SimonBase {
 
 				httphandler.processMessage (aMessage);
 			}
-		}
-	}
-
-	/**
-	 * Pass a WebSocket reply, which has no HTTP header, to the registered messageListener and httphandler.
-	 * @param {string} aMessage expect data as string
-	 */
-	processWSReply (aMessage) {
-		pointer.ctatdebug ("processWSReply() length "+(aMessage === null ? null : aMessage.toString().length));
-
-		if(typeof(aMessage) == "string") {
-			if (messageListener!==null) {
-				messageListener.processIncoming (aMessage);
-			}
-
-			if (aMessage.indexOf ("status=success")!=-1) {
-				pointer.ctatdebug ("processWSReply() logging success message received, not propagating to message handler: "+aMessage);
-			} else {
-				pointer.ctatdebug ("Processing incoming message: " + aMessage);
-
-				httphandler.processMessage (aMessage);
-			}
-		}
-	}
-
-	/**
-	 * Respond to a WebSocket close event by putting up a scrim asking the user to close
-	 * the browser page.
-	 * @param {object:Event} evt event from WebSocket interface
-	 */
-	processWSClose (evt) {
-		pointer.ctatdebug("processWSClose("+evt+")");
-
-		if (evt instanceof CloseEvent) {
-			pointer.ctatdebug("CloseEvent: code "+evt.code+", reason "+evt.reason+", wasClean "+evt.wasClean);
-		}
-
-		if(CTATLMS.is.Authoring()) {
-			CTATScrim.scrim.scrimUp(CTATGlobals.languageManager.filterString("AUTHORPLEASECLOSE"));
-		} else {		
-		  // FIXME for use with WebSockets at student time--refine?
-			CTATScrim.scrim.handleTSDisconnect();
 		}
 	}
 

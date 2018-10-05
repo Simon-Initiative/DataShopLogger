@@ -77,7 +77,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.loggingCommLibrary=new CTATCommLibrary ();
 		this.loggingCommLibrary.setName ("commLoggingLibrary");
-		this.loggingCommLibrary.setUseCommSettings (false);
+		this.loggingCommLibrary.setUseCommSettings (true);
 		this.loggingCommLibrary.setConnectionRefusedMessage ("ERROR_CONN_LS");
 		this.loggingCommLibrary.assignHandler (this);
 
