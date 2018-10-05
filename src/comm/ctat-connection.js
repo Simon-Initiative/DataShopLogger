@@ -215,6 +215,7 @@ export default class CTATConnection extends CTATConnectionBase {
 
 		this.init ();
 
+    /*
 		try {
 			if (this.data) {
 				this.getHTTPObject ().send (this.data);
@@ -225,5 +226,14 @@ export default class CTATConnection extends CTATConnectionBase {
 			this.ctatdebug ("Error in newConnection.httpObject.send: " + err.message);
 			return;
 		}
+		*/
+
+		this.httpObject.caller=this.caller;
+
+		if (this.data) {
+			this.getHTTPObject ().send (this.data);
+		} else {
+			this.getHTTPObject ().send ();
+		}		
 	}
 }

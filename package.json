@@ -44,10 +44,12 @@
     "build": "webpack -p --config webpack.prod.js",
     "dev": "webpack --progress --colors --watch --config webpack.dev.js",
     "test": "mocha --require babel-core/register --colors ./test/*.spec.js || true",
+    "test:debug": "mocha --inspect-brk --require babel-core/register --colors ./test/*.spec.js || true",
     "test:watch": "mocha --require babel-core/register --colors -w ./test/*.spec.js || true",
     "clean": "rm -rf lib/*.js && rm -rf lib/*.map && rm -rf node_modules && rm -rf *~ && find . -type f -name '*.DS_Store' -delete"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "npm": "^6.4.1",
     "xmlhttprequest": "^1.8.0"
   }

@@ -3,6 +3,7 @@ import $ from 'jquery';
 import SimonBase from '../simon-base.js';
 import CTATWSConnection from '../comm/ctat-wsconnection.js';
 import CTATConnection from '../comm/ctat-connection.js';
+import axios from 'axios' // https://www.npmjs.com/package/axios
 
 var bundleFormatter="";
 var inBundle=false;
@@ -258,11 +259,21 @@ export default class CTATCommLibrary extends SimonBase {
 			formatted=("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+bundleFormatter);
 		}
 
+    /*
 		if (this.getUseCommSettings() && pointer.getSocketType ()=="javascript") {
 			this.send_post (url,formatted);
 		} else {
 			this.ctatdebug("bump");
 		}
+		*/
+
+		axios.post('https://pslc-qa.andrew.cmu.edu/log/server',
+      xmlString, {
+        headers: {'Content-Type': 'text/xml'}
+      }).then(res=>{
+        console.log("status: " + res.status);
+        console.log("status: " + res.statusText);
+      }).catch(err=>{console.log("error: " + err)});
 	}
 
 	/**
@@ -343,6 +354,7 @@ export default class CTATCommLibrary extends SimonBase {
 		}
 		*/
 
+    /*
 		var newConnection=new CTATConnection (null);
 		newConnection.setID (httpreqindex);
 		this.httpreqindex++;
@@ -372,13 +384,24 @@ export default class CTATCommLibrary extends SimonBase {
 			return false;
 		}
 
+		newConnection.setCaller(this);
+
 		try {
 			newConnection.getHTTPObject ().send (null);
 		} catch(err) {
 			this.ctatdebug ("Error in newConnection.httpObject.send: " + err.message);
 			return false;
 		}
+		*/
 
+    axios.get(url).then(function (res) {
+        console.log("status: " + res.status);
+        console.log("statusText: " + res.statusText);
+        console.log("data: " + res.data);
+      }).catch(function (error) {
+        console.log(error);
+      });		
+	
 		return true;
 	}
 
@@ -387,6 +410,36 @@ export default class CTATCommLibrary extends SimonBase {
 	*/
 	send_post_variables (url,variables) {
 		this.ctatdebug ('send_post_variables ('+url+')');
+
+		var data="";
+
+		if (this.useOLIEncoding===false) {
+			data=this.encodeVariables(variables);
+		} else {
+			data=this.encodeVariablesOLI(variables);
+		}
+
+		this.ctatdebug ("Sending: " + data);
+
+		if (this.messageListener!==null) {
+			this.messageListener.processOutgoing (data);
+		}
+
+		axios.post(url,
+      data, {
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+      }).then(res=>{
+        console.log("status: " + res.status);
+        console.log("statusText: " + res.statusText);
+        console.log("data: " + res.data);
+      }).catch(err=>{console.log("error: " + err)});			
+	}
+
+	/**
+	*
+	*/
+	send_post_variables_old (url,variables) {
+		this.ctatdebug ('send_post_variables_old ('+url+')');
 
 		var vars=flashVars.getRawFlashVars ();
 		var res=url;
@@ -434,6 +487,7 @@ export default class CTATCommLibrary extends SimonBase {
 			this.messageListener.processOutgoing (data);
 		}
 
+    newConnection.setCaller(this);
 		newConnection.setURL (res);
 		newConnection.setData (data);  // or CTATCommLibrary.addAuthenticityToken(data)
 		newConnection.assignReceiveFunction (this.processReply);
@@ -444,6 +498,32 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	send_post (url,data) {
+		this.ctatdebug ('send_post ('+url+')');
+
+    /*
+		if (CTATGlobals.CommDisabled===true) {
+			this.ctatdebug ("Communications globally disabled, please check your settings");
+			return;
+		}
+		*/
+
+		//this.ctatdebug ("Outoing on wire: " + data);
+		console.log ("Outoing on wire: " + data);
+
+    axios.post(url,
+      data, {
+        headers: {'Content-Type': 'text/xml'}
+      }).then(res=>{
+        console.log("status: " + res.status);
+        console.log("statusText: " + res.statusText);
+        console.log("data: " + res.data);
+      }).catch(err=>{console.log("error: " + err)});
+	}
+
+	/**
+	*
+	*/
+	send_post_old (url,data) {
 		//useDebugging=true;
 
 		var newConnection=null;
@@ -509,10 +589,6 @@ export default class CTATCommLibrary extends SimonBase {
 	* https://www.w3schools.com/js/js_ajax_http.asp
 	*/
 	processReply (argument) {
-    console.log ("processReply ()");
-
-    //this.debugHTTPObject (anObject);
-
     if (this.readyState!=4) {
     	console.log ("Response not ready yet");
 		  return;
@@ -520,6 +596,9 @@ export default class CTATCommLibrary extends SimonBase {
 
 		console.log ("status: " + this.status);
 		console.log ("readyState: " + this.readyState);
+
+		console.log ("processReply ()");
+
 		/*
 		console.log ("responseText: " + this.responseText);
 		console.log ("responseXML: " + this.responseXML);
@@ -530,38 +609,54 @@ export default class CTATCommLibrary extends SimonBase {
 		var found=false;
 		var stringDelivery=[];
 
-		var request=0;
+    var caller=this.caller;
 
-		console.log ("Testing " + this.caller.httprequests.length + " request objects");
+		console.log ("Testing " + caller.httprequests.length + " request objects");
 
-		for (request=0;request<this.caller.httprequests.length;request++) {
-			var testConnection=this.caller.httprequests [request];
+		for (var request=0; request < caller.httprequests.length; request++) {
+			console.log ("Testing: " + request);
+     
+			var testConnection=caller.httprequests [request];
+
+			console.log (testConnection);
+
+			//console.log ("HERE");
+
 			var testObject=testConnection.getHTTPObject ();
 
-			this.ctatdebug ("Testing connection entry " + request + ", readyState: " + testObject.readyState + ", consumed: "+ testConnection.getConsumed () + ", status: " + testObject.status);
+			//console.log (testObject);
+
+      console.log (request);
+      console.log (testObject.readyState);
+      console.log (testConnection.getConsumed ());
+      console.log (testObject.status);
+
+			console.log ("Testing connection entry " + request + ", readyState: " + testObject.readyState + ", consumed: "+ testConnection.getConsumed () + ", status: " + testObject.status);
 
 			//>---------------------------------------------------------------------------------
 
 			if ((testObject.readyState==4) && (testConnection.getConsumed ()===false)) {
-				this.ctatdebug ("Investigating request response: " + i + " -> " + testObject.status + ", for: " + testConnection.getURL ());
+				console.log ("Investigating request response: " + i + " -> " + testObject.status + ", for: " + testConnection.getURL ());
 
 				found=false;
 
 				if (testObject.status===0) {
 					found=true;
 
-					this.ctatdebug ("Received message (status 0): (" + testObject.responseText + "), status: " + testObject.status);
+					console.log ("Received message (status 0): (" + testObject.responseText + "), status: " + testObject.status);
 
+          /*
 					if(useScrim) {
 						CTATScrim.scrim.errorScrimUp(CTATGlobals.languageManager.filterString (connectionRefusedMessage));
 					}
+					*/
 				}
 
 				// 408 timeout response
 				if(testObject.status==408) {
 					found=true;
 
-					this.ctatdebug ("Received message (status 408): " + testObject.responseText);
+					console.log ("Received message (status 408): " + testObject.responseText);
 
           /* 
 					if(useScrim) {
@@ -573,7 +668,7 @@ export default class CTATCommLibrary extends SimonBase {
 				if (testObject.status==502) {
 					found=true;
 
-					this.ctatdebug ("Received message (status 502): " + testObject.responseText);
+					console.log ("Received message (status 502): " + testObject.responseText);
 
           /* 
 					if(useScrim) {
@@ -585,66 +680,66 @@ export default class CTATCommLibrary extends SimonBase {
 				if (testObject.status==200) {
 					found=true;
 
-					this.ctatdebug ("Processing 200 response ...");
+					console.log ("Processing 200 response ...");
 
-					if (httphandler!==null) {
+					if (caller.httphandler!==null) {
 						//pointer.ctatdebug ("Received message (status 200): " + testObject.responseText);
 
 						stringDelivery.push (testObject.responseText);
 
-						if (this.messageListener!==null) {
-							this.messageListener.processIncoming (testObject.responseText);
+						if (caller.messageListener!==null) {
+							caller.messageListener.processIncoming (testObject.responseText);
 						}
 					} else {
-						this.ctatdebug ("Error: httphandler is null, can't process response!");
+						console.log ("Error: httphandler is null, can't process response!");
 					}
-				} else if(httphandler && httphandler.processError) {
+				} else if(caller.httphandler && caller.httphandler.processError) {
 					found=true;
-					this.ctatdebug ("Processing non-200 response, status "+testObject.status);
-					httphandler.processError(testObject.status, testObject.responseText);
+					caller.ctatdebug ("Processing non-200 response, status "+testObject.status);
+					caller.httphandler.processError(testObject.status, testObject.responseText);
 				}
 
 				if (found===false) {
-					pointer.ctatdebug ("Error: status not handled for: " + testObject.status);
+					console.log ("Error: status not handled for: " + testObject.status);
 				}
 
-				pointer.ctatdebug ("Marking connection as consumed ...");
+				console.log ("Marking connection as consumed ...");
 
 				testConnection.setConsumed (true); // make sure we don't call it again!
 			} else {
 				if (testObject.readyState===0) {
-					pointer.ctatdebug ("Received message (status 0, request not initialized)");
+					console.log ("Received message (status 0, request not initialized)");
 				}
 
 				if (testObject.readyState===1) {
-					pointer.ctatdebug ("Received message (status 1, server connection established)");
+					console.log ("Received message (status 1, server connection established)");
 				}
 
 				if (testObject.readyState===2) {
-					pointer.ctatdebug ("Received message (status 2, request received)");
+					console.log ("Received message (status 2, request received)");
 				}
 
 				if (testObject.readyState===3) {
-					pointer.ctatdebug ("Received message (status 3, processing request)");
+					console.log ("Received message (status 3, processing request)");
 				}
 			}
 
 			i++;
 		}
 
-		pointer.cleanup();
+		caller.cleanup();
 
 		for (var t=0;t<stringDelivery.length;t++) {
-			pointer.ctatdebug ("Processing incoming message: " +  t);
+			console.log ("Processing incoming message: " +  t);
 
 			var aMessage=stringDelivery [t];
 
 			if (aMessage.indexOf ("status=success")!=-1) {
-				pointer.ctatdebug ("Info: logging success message received, not propagating to message handler");
+				console.log ("Info: logging success message received, not propagating to message handler");
 			} else {
-				pointer.ctatdebug ("Processing incoming message: " + aMessage);
+				console.log ("Processing incoming message: " + aMessage);
 
-				httphandler.processMessage (aMessage);
+				caller.httphandler.processMessage (aMessage);
 			}
 		}
 	}
@@ -653,7 +748,7 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	cleanup () {
-		pointer.ctatdebug ("cleanup ()");
+		this.ctatdebug ("cleanup ()");
 
 		//var i=0;
 		var count=0;
@@ -670,7 +765,7 @@ export default class CTATCommLibrary extends SimonBase {
 			}
 		}
 
-		pointer.ctatdebug ("Removed " + count + " entries");
+		this.ctatdebug ("Removed " + count + " entries");
 	}
 
 	/**

@@ -209,13 +209,13 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
   *
   */
 	setLoggingURLQA() {
-    this.setLoggingURL("http://pslc-qa.andrew.cmu.edu/log/server");
+    this.setLoggingURL("https://pslc-qa.andrew.cmu.edu/log/server");
 	}
   /**
   *
   */
 	setLoggingURLProduction() {
-    this.setLoggingURL("http://learnlab.web.cmu.edu/log/server");
+    this.setLoggingURL("https://learnlab.web.cmu.edu/log/server");
 	}	
 	/**
 	*

@@ -5,9 +5,8 @@ import CTATLoggingLibrary from '../src/loglibrary/ctat-logginglibrary.js';
  *
  */
 export default function() { 
-  
-  var loggingLibrary = new CTATLoggingLibrary (false);
 
+  var loggingLibrary = new CTATLoggingLibrary (false);
 
   loggingLibrary.setDatasetName("DataShop Unit Test");
   loggingLibrary.setdDtasetLevelName ("level1");
@@ -22,6 +21,6 @@ export default function() {
   loggingLibrary.setLoggingURLQA ();
 
   loggingLibrary.startProblem ();
-
+ 
   return (true);
 }

@@ -2,7 +2,7 @@
 //import './simon-global.js'
 
 var useDebugging=false;
-var useDebuggingBasic=false;
+var useDebuggingBasic=true;
 
 /**
  *
@@ -112,6 +112,12 @@ export default class SimonBase {
 	*
 	*/
 	simondebugInternal (msg,sClassName) {
+
+    if(!useDebugging) {
+      //console.log ("Logging disabled!");
+      return;
+    }
+
 	  var aMessage=msg;
 	  var txt="No msg assigned yet";
 
@@ -127,12 +133,17 @@ export default class SimonBase {
       sClassName="UndefinedClass";
     }
 
+    if (this.className=!null) {
+      sClassName=this.className;
+    }
+
     if (aMessage===null) {
       aMessage="No message";
     }
 
     txt=this.formatLogMessage (sClassName,this.getName (),aMessage);
 
+    
     console.log (txt);
 	}
 

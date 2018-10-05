@@ -315,13 +315,9 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 		//<event_descriptor>(0+)
 		var eventDescriptor = '<event_descriptor>';
-
-		//useDebugging=true;
 		var loggedSAI=sai.toXMLString(true);
 		//this.ctatdebug ("Logged SAI (B): " + loggedSAI);
 		eventDescriptor+=loggedSAI;
-		//useDebugging=false;
-
 		eventDescriptor+='</event_descriptor>';
 		messageString+=eventDescriptor;
 
@@ -336,9 +332,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		}
 		*/
 
-		//useDebugging=true;
 		this.ctatdebug ("messageString = "+messageString);
-		//useDebugging=false;
 
 		return messageString;
 	}
