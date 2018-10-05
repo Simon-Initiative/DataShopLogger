@@ -93,7 +93,7 @@ export default class CTATCommLibrary extends SimonBase {
 	 *
 	 */
 	encodeVariables(variables) {
-		pointer.ctatdebug ("encodeVariables ()");
+		this.ctatdebug ("encodeVariables ()");
 
 	    var parameterString="";
 
@@ -116,7 +116,7 @@ export default class CTATCommLibrary extends SimonBase {
 	 *
 	 */
 	encodeVariablesOLI(variables) {
-		pointer.ctatdebug ("encodeVariablesOLI ()");
+		this.ctatdebug ("encodeVariablesOLI ()");
 
 	    var parameterString="";
 
@@ -139,7 +139,7 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	createConnection (aVars,aURL) {
-		pointer.ctatdebug ('createConnection ()');
+		this.ctatdebug ('createConnection ()');
 
 		if (!aURL) {
 			return (new CTATConnection (aVars));
@@ -149,7 +149,7 @@ export default class CTATCommLibrary extends SimonBase {
 		var	newConnection=null;
 
 		//if (vars ['tutoring_service_communication']=='websocket')
-		if (pointer.getSocketType ()=="websocket") {
+		if (this.getSocketType ()=="websocket") {
 			// We need to find out if we already have a websocket object for the requested URL,
 			// otherwise we keep opening them over and over again
 			newConnection = this.findWSConnection(aURL);
@@ -161,9 +161,9 @@ export default class CTATCommLibrary extends SimonBase {
 				newConnection.assignReceiveFunction (this.processWSReply);
 				newConnection.assignCloseFunction (this.processWSClose);
 
-				httprequests.push(newConnection);
+				this.httprequests.push(newConnection);
 
-				httpreqindex++;
+				this.httpreqindex++;
 			}
 			return (newConnection);
 		}
@@ -173,9 +173,8 @@ export default class CTATCommLibrary extends SimonBase {
 		newConnection.setURL (aURL);
 		newConnection.assignReceiveFunction (this.processReply);
 
-		httprequests.push(newConnection);
-
-		httpreqindex++;
+		this.httprequests.push(newConnection);
+		this.httpreqindex++;
 
 		return (newConnection);
 	}
@@ -186,13 +185,14 @@ export default class CTATCommLibrary extends SimonBase {
 	*	@returns the CTATWSConnection object, or null if no connection found
 	*/
 	findWSConnection (aURL) {
-		ctatdebug('findWSConnection( '+aURL+' )');
-		let sURL = pointer.editSocketURLForHTTPS(aURL);
+		this.ctatdebug('findWSConnection( '+aURL+' )');
 
-		for (let request=0; request<httprequests.length; request++)
+		let sURL = this.editSocketURLForHTTPS(aURL);
+
+		for (let request=0; request<this.httprequests.length; request++)
 		{
-			var testConnection=httprequests [request];
-			ctatdebug('checking: socketType = '+testConnection.getSocketType ()+' URL = '+testConnection.getURL ());
+			var testConnection=this.httprequests [request];
+			this.ctatdebug('checking: socketType = '+testConnection.getSocketType ()+' URL = '+testConnection.getURL ());
 			if ((testConnection.getSocketType ()=="ws") && (testConnection.getURL ()==sURL))
 			{
 				return (testConnection);
@@ -205,52 +205,52 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	startBundle () {
-		pointer.ctatdebug ('startBundle ()');
+		this.ctatdebug ('startBundle ()');
 
-		if (useBundling===false) {
+		if (this.useBundling===false) {
 			this.ctatdebug ("Not using bundling, bump");
 			return;
 		}
 
-		bundleFormatter=xmlHeader+"<message><verb/><properties><MessageType>MessageBundle</MessageType><messages>";
+		this.bundleFormatter=xmlHeader+"<message><verb/><properties><MessageType>MessageBundle</MessageType><messages>";
 
-		inBundle=true;
+		this.inBundle=true;
 	}
 
 	/**
 	 *
 	 */
 	endBundle () {
-		pointer.ctatdebug ('endBundle ()');
+		this.ctatdebug ('endBundle ()');
 
-		if (useBundling===false) {
-			pointer.ctatdebug ("Not using bundling, bump");
+		if (this.useBundling===false) {
+			this.ctatdebug ("Not using bundling, bump");
 			return;
 		}
 
-		inBundle=false;
+		this.inBundle=false;
 
-		bundleFormatter+="</messages></properties></message>";
+		this.bundleFormatter+="</messages></properties></message>";
 
-		pointer.sendXML (bundleFormatter);
+		this.sendXML (bundleFormatter);
 	}
 
 	/**
 	*
 	*/
 	setFixedURL (aURL) {
-		fixedURL=aURL;
+		this.fixedURL=aURL;
 	}
 
 	/**
 	 *
 	 */
 	getURL () {
-		pointer.ctatdebug ("getURL ()");
+		this.ctatdebug ("getURL ()");
 
-		if (fixedURL!=="") {
-			pointer.ctatdebug ("Returning fixedURL: " + fixedURL);
-			return (fixedURL);
+		if (this.fixedURL!=="") {
+			this.ctatdebug ("Returning fixedURL: " + this.fixedURL);
+			return (this.fixedURL);
 		}
 
 		var vars=flashVars.getRawFlashVars ();
@@ -258,7 +258,7 @@ export default class CTATCommLibrary extends SimonBase {
 		var prefix="http://";
 
 		//if (vars ['tutoring_service_communication']=='https')
-		if (pointer.getSocketType ()=="https") {
+		if (this.getSocketType ()=="https") {
 			prefix="https://";
 		}
 
@@ -275,35 +275,32 @@ export default class CTATCommLibrary extends SimonBase {
 	 *
 	 */
 	sendXML (aMessage) {
-		pointer.ctatdebug ('sendXML ('+aMessage+')');
+		this.ctatdebug ('sendXML ('+aMessage+')');
 
-		if (useBundling===true) {
-			if (inBundle===true) {
-				pointer.ctatdebug ('Bundling ...');
+		if (this.useBundling===true) {
+			if (this.inBundle===true) {
+				this.ctatdebug ('Bundling ...');
 
-				bundleFormatter+=aMessage;
+				this.bundleFormatter+=aMessage;
 				return;
 			} else {
-				bundleFormatter=aMessage;
+				this.bundleFormatter=aMessage;
 			}
 		} else {
-			bundleFormatter=aMessage;
+			this.bundleFormatter=aMessage;
 		}
 
 		var vars=flashVars.getRawFlashVars ();
 
 		var url=this.getURL ();
 
-		var formatted=bundleFormatter;
+		var formatted=this.bundleFormatter;
 
-		if (bundleFormatter.indexOf ("<?xml")==-1) {
+		if (this.bundleFormatter.indexOf ("<?xml")==-1) {
 			formatted=("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+bundleFormatter);
 		}
 
 		if (this.getUseCommSettings() && pointer.getSocketType ()=="javascript") {
-			// See TutorBridge.js
-			CTAT.ToolTutor.sendToTutor (formatted);
-		} else {
 			this.send_post (url,formatted);
 		}
 	}
@@ -312,9 +309,9 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	sendXMLNoBundle (aMessage) {
-		pointer.ctatdebug ('sendXMLNoBundle ('+aMessage+')');
+		this.ctatdebug ('sendXMLNoBundle ('+aMessage+')');
 
-		bundleFormatter=aMessage;
+		this.bundleFormatter=aMessage;
 
 		var url=this.getURL ();
 
@@ -326,10 +323,7 @@ export default class CTATCommLibrary extends SimonBase {
 
 		var vars=flashVars.getRawFlashVars ();
 
-		if (this.getUseCommSettings() && pointer.getSocketType ()=="javascript") {
-			// See TutorBridge.js
-			CTAT.ToolTutor.sendToTutor (formatted);
-		} else {
+		if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
 			this.send_post (url,formatted);
 		}
 	}
@@ -338,7 +332,7 @@ export default class CTATCommLibrary extends SimonBase {
 	 *
 	 */
 	sendXMLURL (aMessage,aURL) {
-		ctatdebug ('sendXMLURL ('+aURL+')');
+		this.ctatdebug ('sendXMLURL ('+aURL+')');
 
 		var formatted=aMessage;
 
@@ -348,12 +342,9 @@ export default class CTATCommLibrary extends SimonBase {
 
 		var vars=flashVars.getRawFlashVars ();
 
-		pointer.ctatdebug ("Sending: " + formatted);
+		this.ctatdebug ("Sending: " + formatted);
 
-		if (this.getUseCommSettings() && pointer.getSocketType ()=="javascript") {
-			// See TutorBridge.js
-			CTAT.ToolTutor.sendToTutor (formatted);
-		} else {
+		if (this.getUseCommSettings() && this.getSocketType ()=="javascript") {
 			this.send_post (aURL,formatted);
 		}
 	}
@@ -374,23 +365,25 @@ export default class CTATCommLibrary extends SimonBase {
 	* connection type and will instantiate our default HTTP connection object
 	*/
 	send (url) {
-		pointer.ctatdebug ('send ('+url+')');
+		this.ctatdebug ('send ('+url+')');
 
+    /*
 		if (CTATGlobals.CommDisabled===true) {
 			pointer.ctatdebug ("Communications globally disabled, please check your settings");
 			return false;
 		}
+		*/
 
 		var newConnection=new CTATConnection (null);
 		newConnection.setID (httpreqindex);
-		httpreqindex++;
+		this.httpreqindex++;
 
 		if (newConnection.getHTTPObject ()===null) {
 			alert ('Cannot create XMLHTTP instance');
 			return false;
 		}
 
-		httprequests.push(newConnection);
+		this.httprequests.push(newConnection);
 
 		newConnection.setURL (url);
 
@@ -424,19 +417,19 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	send_post_variables (url,variables) {
-		pointer.ctatdebug ('send_post_variables ('+url+')');
+		this.ctatdebug ('send_post_variables ('+url+')');
 
 		var vars=flashVars.getRawFlashVars ();
 		var res=url;
 
 		//if (vars ['tutoring_service_communication']=='websocket')
-		if (pointer.getSocketType ()=="websocket") {
+		if (this.getSocketType ()=="websocket") {
 			//res=url.replace ("http:","ws:");
 		}
 
 		var data="";
 
-		if (useOLIEncoding===false) {
+		if (this.useOLIEncoding===false) {
 			data=this.encodeVariables(variables);
 		} else {
 			data=this.encodeVariablesOLI(variables);
@@ -444,15 +437,17 @@ export default class CTATCommLibrary extends SimonBase {
 
 		this.ctatdebug ("Sending: " + data);
 
+    /*
 		if (CTATGlobals.CommDisabled===true) {
 			pointer.ctatdebug ("Communications globally disabled, please check your settings");
 			return;
 		}
+		*/
 
-		var newConnection=pointer.createConnection (CTATConfiguration.getRawFlashVars(),url);
+		var newConnection=this.createConnection (CTATConfiguration.getRawFlashVars(),url);
 		newConnection.setContentType ("application/x-www-form-urlencoded");
 
-		httpreqindex++;
+		this.httpreqindex++;
 
 		/*
 		if (newConnection.getHTTPObject ()===null)
@@ -462,12 +457,12 @@ export default class CTATCommLibrary extends SimonBase {
 		}
 		*/
 
-		httprequests.push(newConnection);
+		this.httprequests.push(newConnection);
 
-		pointer.ctatdebug (data);
+		this.ctatdebug (data);
 
-		if (messageListener!==null) {
-			messageListener.processOutgoing (data);
+		if (this.messageListener!==null) {
+			this.messageListener.processOutgoing (data);
 		}
 
 		newConnection.setURL (res);
@@ -484,32 +479,34 @@ export default class CTATCommLibrary extends SimonBase {
 
 		var newConnection=null;
 
-		ctatdebug ('send_post ('+url+')');
+		this.ctatdebug ('send_post ('+url+')');
 
+    /*
 		if (CTATGlobals.CommDisabled===true) {
-			pointer.ctatdebug ("Communications globally disabled, please check your settings");
+			this.ctatdebug ("Communications globally disabled, please check your settings");
 			return;
 		}
+		*/
 
-		ctatdebug ("Outoing on wire: " + data);
+		this.ctatdebug ("Outoing on wire: " + data);
 
 		var vars=flashVars.getRawFlashVars ();
 		var res=url;
 
 		//if (vars ['tutoring_service_communication']=='websocket')
-		if (pointer.getSocketType ()=="websocket") {
+		if (this.getSocketType ()=="websocket") {
 			ctatdebug('opening websocket connection: url '+url);
 
 			res=url.replace ("http:", "ws:");
 		  res=pointer.editSocketURLForHTTPS(res);
 			
-			ctatdebug('opening websocket connection to '+res);
+			this.ctatdebug('opening websocket connection to '+res);
 
-			newConnection=pointer.createConnection (vars,res);
+			newConnectionthis.createConnection (vars,res);
 
 			newConnection.setData (data);
 
-			pointer.ctatdebug (data);
+			this.ctatdebug (data);
 
 			if (messageListener!==null) {
 				messageListener.processOutgoing (data);
@@ -531,7 +528,7 @@ export default class CTATCommLibrary extends SimonBase {
 	*
 	*/
 	processReply (argument) {
-		pointer.ctatdebug ('processReply ('+httprequests.length+','+argument+')');
+		this.ctatdebug ('processReply ('+httprequests.length+','+argument+')');
 
 		var i=0;
 		var found=false;
@@ -543,19 +540,19 @@ export default class CTATCommLibrary extends SimonBase {
 			var testConnection=httprequests [request];
 			var testObject=testConnection.getHTTPObject ();
 
-			pointer.ctatdebug ("Testing connection entry " + request + ", readyState: " + testObject.readyState + ", consumed: "+ testConnection.getConsumed () + ", status: " + testObject.status);
+			this.ctatdebug ("Testing connection entry " + request + ", readyState: " + testObject.readyState + ", consumed: "+ testConnection.getConsumed () + ", status: " + testObject.status);
 
 			//>---------------------------------------------------------------------------------
 
 			if ((testObject.readyState==4) && (testConnection.getConsumed ()===false)) {
-				pointer.ctatdebug ("Investigating request response: " + i + " -> " + testObject.status + ", for: " + testConnection.getURL ());
+				this.ctatdebug ("Investigating request response: " + i + " -> " + testObject.status + ", for: " + testConnection.getURL ());
 
 				found=false;
 
 				if (testObject.status===0) {
 					found=true;
 
-					pointer.ctatdebug ("Received message (status 0): (" + testObject.responseText + "), status: " + testObject.status);
+					this.ctatdebug ("Received message (status 0): (" + testObject.responseText + "), status: " + testObject.status);
 
 					if(useScrim) {
 						CTATScrim.scrim.errorScrimUp(CTATGlobals.languageManager.filterString (connectionRefusedMessage));
@@ -566,27 +563,31 @@ export default class CTATCommLibrary extends SimonBase {
 				if(testObject.status==408) {
 					found=true;
 
-					pointer.ctatdebug ("Received message (status 408): " + testObject.responseText);
+					this.ctatdebug ("Received message (status 408): " + testObject.responseText);
 
+          /* 
 					if(useScrim) {
 						CTATScrim.scrim.scrimDown();
 					}
+					*/
 				}
 
 				if (testObject.status==502) {
 					found=true;
 
-					pointer.ctatdebug ("Received message (status 502): " + testObject.responseText);
+					this.ctatdebug ("Received message (status 502): " + testObject.responseText);
 
+          /* 
 					if(useScrim) {
 						CTATScrim.scrim.errorScrimUp(CTATGlobals.languageManager.filterString (ERROR_502));
 					}
+					*/
 				}
 
 				if (testObject.status==200) {
 					found=true;
 
-					pointer.ctatdebug ("Processing 200 response ...");
+					this.ctatdebug ("Processing 200 response ...");
 
 					if (httphandler!==null) {
 						//pointer.ctatdebug ("Received message (status 200): " + testObject.responseText);

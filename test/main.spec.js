@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 describe("testmain", () => {
     context("When creating a new instance of SimonBase", () => {
-        it("it executes properly", () => {
+        it("it executes debug call", () => {
             expect(testmain()).to.equal(true);
         });
     });
@@ -22,7 +22,7 @@ describe("testlibrary", () => {
 
 describe("testsender", () => {
     context("When sending with the LoggingLibrary", () => {
-        it("it works", () => {
+        it("it sends a message to the Datashop QA server", () => {
             expect(testsender()).to.equal(true);
         });
     });

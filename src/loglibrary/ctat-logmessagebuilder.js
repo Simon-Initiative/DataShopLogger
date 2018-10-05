@@ -30,10 +30,15 @@ export default class CTATLogMessageBuilder extends SimonBase {
   /**
   *
   */
-	constructor () {
+	constructor (aVars) {
 		super ("CTATLogMessageBuilder","logmessagebuilder");
 
-		this.pointer=this;
+    this.customFieldNames=[];
+	  this.customFieldValues=[];
+
+    this.flashVars=aVars;
+
+		//this.pointer=this;
 
 		// Blanked this out to kill a bug that generated extra XML headers. Used to be = '<?xml version="1.0" encoding="UTF-8"?>'
 		this.xmlHeader = '';
@@ -42,19 +47,37 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		 * The standard XMLProlog, we actually reference this a lot.
 		 */
 		this.xmlProlog = '<?xml version="1.0" encoding="UTF-8"?>';
+
+		this.contextGUID = '';
   }
+
+	/**
+	 * <b>[Required]</b> The &#60;name&#62; attribute of the current context.
+	 * <p>The name attribute is used to indicate where the student is in the process of working on a tutor or problem.
+	 * The PSLC DataShop team has established some canonical values for this attribute that should be used,
+	 * displayed in <a href="http://pslcdatashop.web.cmu.edu/dtd/guide/context_message.html#table.context_message.name.values">Table 1, Recommended values for the &#60;context_message&#62; name attribute</a>.</p>
+	 * @param	context_name	A name for the current context, see table for a set  of recommended names.
+	 */
+	setContextName(context_name) {
+		this.contextGUID = context_name;
+	}
+
+	/**
+	*
+	*/
+	getContextName() {
+		this.contextGUID;
+	}
 
 	/**
 	*
 	*/
 	makeSessionElement () {
-		var vars=flashVars.getRawFlashVars ();
-
-		if ((vars ['log_session_id']!=undefined) && (vars ['log_session_id']!=null)) {
-			return ('<session_id>'+vars ['log_session_id']+'</session_id>');
+		if ((this.flashVars ['log_session_id']!=undefined) && (this.flashVars ['log_session_id']!=null)) {
+			return ('<session_id>'+this.flashVars ['log_session_id']+'</session_id>');
 		}
 
-		return ('<session_id>'+vars ['session_id']+'</session_id>');
+		return ('<session_id>'+this.flashVars ['session_id']+'</session_id>');
 	}
 
 	/**
@@ -87,15 +110,15 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	*	</dataset>
 	*/
 	createContextMessage (aWrapForOLI) {
-		pointer.ctatdebug("createContextMessage()");
+		this.ctatdebug("createContextMessage()");
 
 		var now=new Date();
 
-		var vars=flashVars.getRawFlashVars ();
+		var vars=this.flashVars;
 
-		var messageString=xmlHeader+'<context_message context_message_id="'+this.getContextName()+'" name="START_PROBLEM">';
+		var messageString=this.xmlHeader+'<context_message context_message_id="'+this.getContextName()+'" name="START_PROBLEM">';
 
-		if(!aWrapForOLI) {
+		if(!this.aWrapForOLI) {
 			messageString += this.makeMetaElement(now);
 		}
 
@@ -141,19 +164,23 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 		//if (vars ['DeliverUsingOLI']=='false')
 		//{
-			var datasetLevelTypes = flashVars.getDatasetTypes ();
-			var datasetLevelNames = flashVars.getDatasetNames ();
+			
+			//var datasetLevelTypes = this.flashVars.getDatasetTypes ();
+			//var datasetLevelNames = this.flashVars.getDatasetNames ();
 
-			pointer.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
+			var datasetLevelTypes = [];
+			var datasetLevelNames = [];
+
+			this.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
 
 			if ((datasetLevelTypes!=null) && (datasetLevelNames!=null)) {
-				pointer.ctatdebug ("We have valid data set names and types, adding to message ...");
+				this.ctatdebug ("We have valid data set names and types, adding to message ...");
 
 				var dataset = '<dataset>';
 				dataset += '<name>'+vars ['dataset_name']+'</name>';
 
 				for (var k=0;k<datasetLevelTypes.length;k++) {
-					pointer.ctatdebug ("Adding ...");
+					this.ctatdebug ("Adding ...");
 
 					dataset += '<level type="' + datasetLevelTypes[k] + '">';
 					dataset += '<name>' + datasetLevelNames[k] + '</name>';
@@ -161,8 +188,8 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 				dataset += '<problem ';
 
-				pointer.ctatdebug ("Checking vars [\"problem_tutorflag\"]: " + vars ["problem_tutorflag"]);
-				pointer.ctatdebug ("Checking vars [\"problem_otherproblemflag\"]: " + vars ["problem_otherproblemflag"]);
+				this.ctatdebug ("Checking vars [\"problem_tutorflag\"]: " + vars ["problem_tutorflag"]);
+				this.ctatdebug ("Checking vars [\"problem_otherproblemflag\"]: " + vars ["problem_otherproblemflag"]);
 
 				if ((vars ["problem_tutorflag"]!=undefined) || (vars ["problem_otherproblemflag"]!=undefined)) {
 					if (vars ["problem_tutorflag"]!=undefined) {
@@ -202,9 +229,15 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		//{
 			var condition="";
 
+      /* 
 			var conditionNames = flashVars.getConditionNames();
 			var conditionTypes = flashVars.getConditionTypes();
 			var conditionDescriptions = flashVars.getConditionDescriptions();
+      */
+
+			var conditionNames = [];
+			var conditionTypes = [];
+			var conditionDescriptions = [];
 
 			//for (var cond in conditionNames)
 			if (conditionNames.length>0) {
@@ -222,7 +255,9 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		//}
 		//>---------------------------------------------------------------------
 		// custom fields
-		var cFields=flashVars.getCustomFields ();
+		//var cFields=flashVars.getCustomFields ();
+
+		var cFields=[];
 
 		for(var aField in cFields) {
 			if (cFields.hasOwnProperty(aField)) {
@@ -235,7 +270,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 		messageString += "</context_message>";
 
-		pointer.ctatdebug ("messageString = " + messageString);
+		this.ctatdebug ("messageString = " + messageString);
 
 		return messageString;
 	}
@@ -252,7 +287,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 														  		semanticSubType,
 														  		wrapForOLI,
 																	aTrigger) {
-		pointer.ctatdebug ("createSemanticEventToolMessage("+aTrigger+")");
+		this.ctatdebug ("createSemanticEventToolMessage("+aTrigger+")");
 
 		var now=new Date();
 		var vars=flashVars.getRawFlashVars ();
@@ -283,7 +318,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 		//useDebugging=true;
 		var loggedSAI=sai.toXMLString(true);
-		//pointer.ctatdebug ("Logged SAI (B): " + loggedSAI);
+		//this.ctatdebug ("Logged SAI (B): " + loggedSAI);
 		eventDescriptor+=loggedSAI;
 		//useDebugging=false;
 
@@ -302,7 +337,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		*/
 
 		//useDebugging=true;
-		pointer.ctatdebug ("messageString = "+messageString);
+		this.ctatdebug ("messageString = "+messageString);
 		//useDebugging=false;
 
 		return messageString;
@@ -318,7 +353,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 														uiEventName,
 														uiEventField,
 														wrapForOLI) {
-		pointer.ctatdebug ("createUIEventToolMessage()");
+		this.ctatdebug ("createUIEventToolMessage()");
 
 		var now = new Date();
 		var vars=flashVars.getRawFlashVars ();
@@ -351,7 +386,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		}
 		*/
 
-		pointer.ctatdebug ("messageString = "+messageString);
+		this.ctatdebug ("messageString = "+messageString);
 
 		return messageString;
 	}
@@ -368,7 +403,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 											semanticSubType,
 											aSkillObject,
 											wrapForOLI) {
-		pointer.ctatdebug ("createTutorMessage()");
+		this.ctatdebug ("createTutorMessage()");
 
 		var now = new Date();
 		var vars=flashVars.getRawFlashVars ();
@@ -415,18 +450,18 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		/*
 		if ((skillSet!=undefined) && (skillSet!=null))
 		{
-			pointer.ctatdebug ("Adding " + skillSet.getSize () + " skills to log message ...");
+			this.ctatdebug ("Adding " + skillSet.getSize () + " skills to log message ...");
 
 			messageString+=skillSet.toLogString ();
 		}
 		else
 		{
-			pointer.ctatdebug ("No skills defined for this message");
+			this.ctatdebug ("No skills defined for this message");
 		}
 		*/
 
 		if (aSkillObject!=null) {
-			pointer.ctatdebug ("Adding skills to log message ...");
+			this.ctatdebug ("Adding skills to log message ...");
 
 			messageString+=aSkillObject.toLogString ();
 		}
@@ -442,7 +477,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		}
 		*/
 
-		pointer.ctatdebug("messageString = "+messageString);
+		this.ctatdebug("messageString = "+messageString);
 
 		return messageString;
 	}
@@ -454,7 +489,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	*	@see http://pslcdatashop.web.cmu.edu/dtd/guide/message_message.html DataShop specification for message
 	*/
 	createGenericMessage(logMessage,wrapForOLI) {
-		pointer.ctatdebug ("createGenericMessage()");
+		this.ctatdebug ("createGenericMessage()");
 
 		var vars=flashVars.getRawFlashVars ();
 
@@ -469,7 +504,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		}
 		*/
 
-		pointer.ctatdebug ("messageString = "+messageString);
+		this.ctatdebug ("messageString = "+messageString);
 
 		return messageString;
 	}
@@ -478,15 +513,16 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	 *
 	 */
 	makeMetaElement (timeStamp) {
-		pointer.ctatdebug ("makeMetaElement ()");
+		this.ctatdebug ("makeMetaElement ()");
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 
 		var meta='<meta>';
-		meta += '<user_id>'+vars ['user_guid']+'</user_id>';
-		meta += '<session_id>'+vars ['session_id']+'</session_id>';
+		meta += '<user_id>'+this.flashVars['user_guid']+'</user_id>';
+		meta += '<session_id>'+this.flashVars['session_id']+'</session_id>';
 		meta += '<time>'+this.formatTimeStamp(timeStamp)+'</time>';
-		meta += '<time_zone>'+flashVars.getTimeZone ()+'</time_zone></meta>';
+		meta += '<time_zone>'+this.getTimeZone ()+'</time_zone>';
+		meta += '</meta>';
 
 		return meta;
 	}
@@ -495,12 +531,12 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	*
 	*/
 	wrapForOLI (messageString) {
-		pointer.ctatdebug ("wrapForOLI ()");
+		this.ctatdebug ("wrapForOLI ()");
 
 		//var now=new Date(Date.UTC ());
 		var now=new Date();
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 
 		messageString = encodeURIComponent(messageString);
 
@@ -514,10 +550,10 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		}
 
 		wrapper += 'action_id="' + "EVALUATE_QUESTION" + '" ';
-		wrapper += 'user_guid="' + vars ['user_guid'] + '" ';
+		wrapper += 'user_guid="' + this.flashVars ['user_guid'] + '" ';
 		wrapper += 'date_time="' + this.formatTimeStampOLI(now) + '" ';
-		wrapper += 'timezone="' + flashVars.getTimeZone () + '" ';
-		wrapper += 'source_id="' + vars ['source_id'] + '" ';
+		wrapper += 'timezone="' + this.getTimeZone () + '" ';
+		wrapper += 'source_id="' + this.flashVars ['source_id'] + '" ';
 
 		if (vars ['activity_context_guid']) {
 			wrapper += 'external_object_id="'+vars ['activity_context_guid']+'" info_type="tutor_message.dtd">';
@@ -531,30 +567,127 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	}
 
 	/**
+	 *
+	 * @returns
+	 */
+	getTimeZone() {
+		if (this.raw!=null) {
+			if (this.raw ['timezone']) {
+				return (this.raw ['timezone']);
+			}
+		}
+
+		return "UTC";
+	}
+
+	/**
 	 * Creates a SessionStart message.
 	 * <p>session_log messages are part of logging to an OLI framework.</p>
 	 * @param	sessionObj	The CTATSessionData object, this is a member of CTATContextData
 	 * @return	Returns a session_log message.
 	 */
-  createLogSessionStart () {
-		pointer.ctatdebug ("createLogSessionStart ()");
+  createLogSessionStart (aVarset) {
+		this.ctatdebug ("createLogSessionStart ()");
 
 		//var now=new Date(Date.UTC ());
 		var now = new Date();
 
-		pointer.ctatdebug ("Date: " + now);
+		this.ctatdebug ("Date: " + now);
 
-		var message='<log_session_start timezone="' + flashVars.getTimeZone() + '" ';
+		var message='<log_session_start timezone="' + this.getTimeZone() + '" ';
 
-		var vars=flashVars.getRawFlashVars ();
+		//var aVarset=flashVars.getRawFlashVars ();
 
 		message += 'date_time="'+this.formatTimeStampOLI(now) + '" ';
-		message += 'auth_token="' +vars ['auth_token'] + '" ';
-		message += 'session_id="' + vars ['session_id'] + '" ';
-		message += 'user_guid="' + vars ['user_guid'] + '" ';
+		message += 'auth_token="' + aVarset['auth_token'] + '" ';
+		message += 'session_id="' + aVarset['session_id'] + '" ';
+		message += 'user_guid="' + aVarset['user_guid'] + '" ';
 		message += 'class_id="" treatment_id="" assignment_id="" info_type="tutor_message.dtd"/>';
 
 		return message;
+	}
+
+	/**
+	 * Formats Date objects into Datashop's prefered format.
+	 * @param	stamp	A Date object.
+	 * @return	A String in the proper format
+	 *
+	 * http://www.w3schools.com/jsref/jsref_obj_date.asp
+	 */
+	formatTimeStamp (stamp) {
+		this.ctatdebug ("formatTimeStamp (" + stamp + ")");
+
+		var s="";
+		var year= stamp.getUTCFullYear();
+		s += year+"-";
+
+		var month=stamp.getUTCMonth();
+		month++;
+		s += ((month<10) ? ("0"+month) : month)+"-";
+
+		var date = stamp.getUTCDate();
+		s += ((date<10) ? ("0"+date) : date)+" ";
+
+		var hours = stamp.getUTCHours();
+		s += ((hours<10) ? ("0"+hours) : hours)+":";
+
+		var mins = stamp.getUTCMinutes();
+		s += ((mins<10) ? ("0"+mins) : mins)+":";
+
+		var secs = stamp.getUTCSeconds();
+		s += ((secs<10) ? ("0"+secs) : secs);
+
+		var msec = stamp.getUTCMilliseconds ();
+		s+=".";
+		s+=msec;
+
+		//s+=" UTC";
+
+		return s;
+	}
+
+	/**
+	 * Formats Date objects into Datashop's prefered format.
+	 * @param	stamp	A Date object.
+	 * @return	A String in the proper format
+	 *
+	 * http://www.w3schools.com/jsref/jsref_obj_date.asp
+	 */
+	formatTimeStampOLI (stamp) {
+		this.ctatdebug ("formatTimeStampOLI (" + stamp + ")");
+
+		var s="";
+		var year= stamp.getUTCFullYear();
+		s += year+"/";
+
+		var month=stamp.getUTCMonth();
+		month++;
+		s += ((month<10) ? ("0"+month) : month)+"/";
+
+		var date = stamp.getUTCDate();
+		s += ((date<10) ? ("0"+date) : date)+" ";
+
+		var hours = stamp.getUTCHours();
+		s += ((hours<10) ? ("0"+hours) : hours)+":";
+
+		var mins = stamp.getUTCMinutes();
+		s += ((mins<10) ? ("0"+mins) : mins)+":";
+
+		var secs = stamp.getUTCSeconds();
+		s += ((secs<10) ? ("0"+secs) : secs);
+
+		var msec = stamp.getUTCMilliseconds ();
+		s+=".";
+		s+=msec;
+
+		return s;
+	}
+
+	resetCustomFields () {
+		this.ctatdebug ("resetCustomFields ()");
+
+		this.customFieldNames=new Array ();
+		this.customFieldValues=new Array ();
 	}
 
 	/**
@@ -564,19 +697,19 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	 * @returns {String}
 	 */
 	createCustomFields (aCustomFieldNames,aCustomFieldValues) {
-		pointer.ctatdebug ("createCustomFields ()");
+		this.ctatdebug ("createCustomFields ()");
 
 		if ((aCustomFieldNames==null) || (aCustomFieldValues==null)) {
-			pointer.ctatdebug ("No custom fields provided");
+			this.ctatdebug ("No custom fields provided");
 			return ("");
 		}
 
-		pointer.ctatdebug ("Processing " + aCustomFieldNames.length + " custom fields ...");
+		this.ctatdebug ("Processing " + aCustomFieldNames.length + " custom fields ...");
 
 		var message='';
 
 		for (var dex=0; dex < aCustomFieldNames.length; dex++) {
-			pointer.ctatdebug ("Adding custom field: ["+aCustomFieldNames[dex]+"],["+aCustomFieldValues[dex]+"]");
+			this.ctatdebug ("Adding custom field: ["+aCustomFieldNames[dex]+"],["+aCustomFieldValues[dex]+"]");
 
 			message += '<custom_field>';
 			message += '<name>' + aCustomFieldNames[dex] + '</name>';
@@ -585,5 +718,45 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		}
 
 		return message;
+	}
+
+	/**
+	 *
+	 */
+	addCustomFields (aCustomFieldNames, aCustomFieldValues) {
+		this.ctatdebug ("addCustomFields ()");
+
+		if (aCustomFieldNames==undefined) {
+			return;
+		}
+
+		for (var i=0;i<aCustomFieldNames.length;i++) {
+			this.customFieldNames.push (aCustomFieldNames [i]);
+			this.customFieldValues.push (aCustomFieldValues [i]);
+		}
+	}
+
+	/**
+	 *
+	 */
+	addCustomfield (aName,aValue) {
+		this.ctatdebug ("addCustomfield ("+aName+","+aValue+")");
+
+		this.customFieldNames.push (aName);
+		this.customFieldValues.push (aValue);
+	}
+
+	/**
+	 *
+	 */
+	getCustomFieldNames () {
+		return (this.customFieldNames);
+	}
+
+	/**
+	 *
+	 */
+	getCustomFieldValues () {
+		return (this.customFieldValues);
 	}
 }

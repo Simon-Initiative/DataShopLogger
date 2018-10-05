@@ -1,3 +1,9 @@
+
+import './simon-global.js'
+
+var useDebugging=false;
+var useDebuggingBasic=false;
+
 /**
  *
  */
@@ -84,7 +90,7 @@ export default class SimonBase {
   *
   */
   ctatdebug (msg) {
-    pointer.simondebug (msg);
+    this.simondebug (msg);
   }  
 
 	/**
@@ -110,42 +116,24 @@ export default class SimonBase {
 	  var txt="No msg assigned yet";
 
 	  if (aMessage===null || aMessage===undefined) {
-        aMessage="No message!";
+      aMessage="No message!";
     }
 
     if (aMessage==="") {
 	    aMessage="Empty message!";
 	  }
 
-    if (useDebuggingBasic) {
-	    txt=formatLogMessage ("Unknown","undefined",aMessage);
-
-		  if (!SimonBase.customconsole) {
-          SimonBase.customconsole=getSafeElementById('customconsole');
-        }
-
-        if (SimonBase.customconsole) {
-          SimonBase.customconsole.innerHTML+=(txt+"<br>");
-
-		  SimonBase.customconsole.scrollTop = SimonBase.customconsole.scrollHeight;
-	    } else {
-          //console.log(txt);
-        }
-
-		return;
-      }
-
 	  if (sClassName===null) {
-        sClassName="UndefinedClass";
-      }
+      sClassName="UndefinedClass";
+    }
 
-      if (aMessage===null) {
-        aMessage="No message";
-      }
+    if (aMessage===null) {
+      aMessage="No message";
+    }
 
-      txt=formatLogMessage (sClassName,this.getName (),aMessage);
+    txt=this.formatLogMessage (sClassName,this.getName (),aMessage);
 
-      console.log (txt);
+    console.log (txt);
 	}
 
 	/**
