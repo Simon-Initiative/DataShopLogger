@@ -15,6 +15,8 @@ import CTATLogMessageBuilder from './ctat-logmessagebuilder.js'
 import OLILogLibraryBase from './oli-loglibrarybase.js'
 import CTATCommLibrary from '../comm/ctat-commlibrary.js'
 import CTATGuid from '../tools/ctat-guid.js'
+import SAI from '../sai.js'
+import ActionEvaluationData from '../evaluationdata.js'
 
 var loggingDisabled=false; // Be very careful with this flag, it will do a hard disable on logging!
 
@@ -44,7 +46,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.xmlProlog='<?xml version="1.0" encoding="UTF-8"?>';
 
 		this.useSessionLog=true;
-		this.useInternal=false;
+		this.useInternal=true;
 		this.useInternalConfigured=false;
 		this.useForcedSessionID="";
 		this.useVars=[];
@@ -126,7 +128,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	/**
 	*
 	*/
-	setdDtasetLevelName (aValue) {
+	setDatasetLevelName (aValue) {
 		this.datasetLevelName=aValue;
 	};
 
@@ -238,9 +240,17 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		aBundle ['session_id']=this.useVars ['session_id'];
 		aBundle ['source_id']='tutor'; // Mainly for OLI
 
+    /*
 		aBundle ['dataset_level_name1']=this.datasetLevelName;
 		aBundle ['dataset_level_type1']=this.datasetLevelType;
-		
+		*/
+
+		aBundle ['dataset_level_name1']=[];
+		aBundle ['dataset_level_type1']=[];
+
+		aBundle ['dataset_level_name1'][0]=this.datasetLevelName;
+		aBundle ['dataset_level_type1'][0]=this.datasetLevelType;
+
 		return (aBundle);
 	};
 
@@ -268,8 +278,16 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.useVars ['session_id']=("ctat_session_"+this.guidGenerator.guid ());
 		this.useVars ['source_id']='tutor'; // Mainly for OLI
 
+    /*
 		this.useVars ['dataset_level_name1']=this.datasetLevelName;
 		this.useVars ['dataset_level_type1']=this.datasetLevelType;
+    */
+
+		this.useVars ['dataset_level_name1']=[];
+		this.useVars ['dataset_level_type1']=[];
+
+		this.useVars ['dataset_level_name1'][0]=this.datasetLevelName;
+		this.useVars ['dataset_level_type1'][0]=this.datasetLevelType;		
 
 		/*
 		if (useOLILogging==true)
@@ -294,10 +312,8 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	initCheck () {
 		this.ctatdebug ("initCheck ()");
 
-		if (this.useInternal==false)
-		{
-			if (this.useInternalConfigured==false)
-			{
+		if (this.useInternal==false) {
+			if (this.useInternalConfigured==false) {
 				this.setupExternalLibraryUsage ();
 				this.useInternalConfigured=true;
 			}
@@ -464,7 +480,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.initCheck ();
 
-		lastSAI=sai;
+		this.lastSAI=sai;
 		
 		//var timeStamp = new Date(Date.UTC ());
 		var timeStamp = new Date();
@@ -505,7 +521,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.initCheck ();
 
-		lastSAI=sai;
+		this.lastSAI=sai;
 
 		var timeStamp =  new Date();
 
@@ -518,26 +534,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		var formattedFeedback="";
 
 		if ((feedBack!=undefined) && (feedBack!=null)) {
-			var preFeedback=CTATGlobals.languageManager.filterString (feedBack);
-
-			/*
-			if ((preFeedback.indexOf("'")!=-1) ||
-				(preFeedback.indexOf("\"")!=-1) ||
-				(preFeedback.indexOf("<")!=-1) ||
-				(preFeedback.indexOf(">")!=-1) ||
-				(preFeedback.indexOf("&")!=-1))
-			{
-				this.ctatdebug("Feedback message contains invalid characters, wrapping in CDATA ...");
-				formattedFeedback="<![CDATA["+preFeedback+"]]>";
-			}
-			else
-			{
-				this.ctatdebug("Feedback message doesn't contain any invalid characters, using as-is");
-				formattedFeedback=preFeedback;
-			}
-			*/
-
-			formattedFeedback="<![CDATA["+preFeedback+"]]>";
+			formattedFeedback="<![CDATA["+feedBack+"]]>";
 		} else {
 			this.ctatdebug("No feedback provided, using empty string");
 			formattedFeedback="";
@@ -592,12 +589,11 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	logInterfaceAttempt (aSelection,anAction,anInput,aCustomElementObject) {
 		this.ctatdebug ("logInterfaceAttempt ()");
 
-		var transactionID = SimonGuid.guid ();
+		var transactionID = this.guidGenerator.guid ();
 
-		var sai=new CTATSAI (aSelection,anAction,anInput);
-		sai.setInput (anInput);
+		var sai=new SAI (aSelection,anAction,anInput);
 		
-		lastSAI=sai;
+		this.lastSAI=sai;
 
 		this.logSemanticEvent (transactionID,sai,"ATTEMPT","");
 
@@ -611,9 +607,9 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	logInterfaceAttemptSAI (anSAI,aCustomElementObject) {
 		this.ctatdebug ("logInterfaceAttemptSAI ()");
 
-		lastSAI=anSAI;
+		this.lastSAI=anSAI;
 		
-		var transactionID = SimonGuid.guid ();
+		var transactionID = this.guidGenerator.guid ();
 
 		this.logSemanticEvent (transactionID,anSAI,"ATTEMPT","");
 
@@ -633,10 +629,9 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 							 aCustomElementObject) {
 		this.ctatdebug ("logResponse ()");
 
-		var sai=new CTATSAI (aSelection,anAction,anInput);
-		sai.setInput (anInput);
+		var sai=new SAI (aSelection,anAction,anInput);
 
-		var evalObj=new CTATActionEvaluationData("");
+		var evalObj=new ActionEvaluationData("");
 		evalObj.setEvaluation (anEvaluation);
 
 		if (aCustomElementObject==undefined) {
@@ -672,7 +667,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 									aCustomElementObject) {
 		this.ctatdebug ("logResponse ()");
 
-		var evalObj=new CTATActionEvaluationData("");
+		var evalObj=new ActionEvaluationData("");
 		evalObj.setEvaluation (anEvaluation);
 
 		if (aCustomElementObject==undefined) {

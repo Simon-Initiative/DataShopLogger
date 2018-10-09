@@ -165,11 +165,8 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		//if (vars ['DeliverUsingOLI']=='false')
 		//{
 			
-			//var datasetLevelTypes = this.flashVars.getDatasetTypes ();
-			//var datasetLevelNames = this.flashVars.getDatasetNames ();
-
-			var datasetLevelTypes = [];
-			var datasetLevelNames = [];
+			var datasetLevelTypes = this.flashVars['dataset_level_name1'];
+			var datasetLevelNames = this.flashVars['dataset_level_type1'];
 
 			this.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
 
@@ -290,8 +287,8 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		this.ctatdebug ("createSemanticEventToolMessage("+aTrigger+")");
 
 		var now=new Date();
-		var vars=flashVars.getRawFlashVars ();
-		var messageString=xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
+		var vars=this.flashVars;
+		var messageString=this.xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
 
 		//<meta>
 		if (!wrapForOLI) {
@@ -315,13 +312,13 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 		//<event_descriptor>(0+)
 		var eventDescriptor = '<event_descriptor>';
-		var loggedSAI=sai.toXMLString(true);
+		var loggedSAI=sai.toXMLString();
 		//this.ctatdebug ("Logged SAI (B): " + loggedSAI);
 		eventDescriptor+=loggedSAI;
 		eventDescriptor+='</event_descriptor>';
 		messageString+=eventDescriptor;
 
-		messageString+=this.createCustomFields (customFieldNames,customFieldValues);
+		messageString+=this.createCustomFields (this.customFieldNames,this.customFieldValues);
 
 		messageString += '</tool_message>';
 
@@ -350,7 +347,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		this.ctatdebug ("createUIEventToolMessage()");
 
 		var now = new Date();
-		var vars=flashVars.getRawFlashVars ();
+		var vars=this.flashVars;
 		var messageString = xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
 
 		//<meta>
@@ -400,8 +397,8 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		this.ctatdebug ("createTutorMessage()");
 
 		var now = new Date();
-		var vars=flashVars.getRawFlashVars ();
-		var messageString = xmlHeader+'<tutor_message context_message_id="'+this.getContextName()+'">';
+		var vars=this.flashVars;
+		var messageString = this.xmlHeader+'<tutor_message context_message_id="'+this.getContextName()+'">';
 
 		//<meta>
 		if (!wrapForOLI) {
@@ -420,7 +417,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 
 		//<event_descriptor>(0+)
 		var eventDescriptor = '<event_descriptor>';
-		eventDescriptor+=sai.toXMLString(true);
+		eventDescriptor+=sai.toXMLString();
 		eventDescriptor+='</event_descriptor>';
 		messageString+=eventDescriptor;
 
@@ -460,7 +457,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 			messageString+=aSkillObject.toLogString ();
 		}
 
-		messageString+=this.createCustomFields (customFieldNames,customFieldValues);
+		messageString+=this.createCustomFields (this.customFieldNames,this.customFieldValues);
 
 		messageString+='</tutor_message>';
 
@@ -733,7 +730,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	/**
 	 *
 	 */
-	addCustomfield (aName,aValue) {
+	addCustomField (aName,aValue) {
 		this.ctatdebug ("addCustomfield ("+aName+","+aValue+")");
 
 		this.customFieldNames.push (aName);
