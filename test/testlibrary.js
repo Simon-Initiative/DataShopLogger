@@ -17,7 +17,7 @@ export default function() {
   loggingLibrary.setInstructor ("Norman Bier");
   loggingLibrary.setProblemName ("problem1");
   loggingLibrary.setProblemContext ("Unit Test");
-  loggingLibrary.setUserID ("anonymous");
+  loggingLibrary.setUserID ("nbier");
   loggingLibrary.setLoggingURLQA ();
 
 /*

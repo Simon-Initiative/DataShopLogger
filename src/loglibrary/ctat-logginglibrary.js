@@ -63,6 +63,8 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.datasetLevelName="UnassignedLevelName";
 		this.datasetLevelType="UnassignedLevelType";
 
+		this.context_name=tools.uuidv4();
+
 		this.logListener=null;
 		
 		this.lastSAI=null;
@@ -71,11 +73,11 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		//this.userid=SimonGuid.guid ();
 		this.userid=tools.uuidv4();
 
+    /*
 		if ((anInternalUsage!=undefined) && (anInternalUsage!=null)) {
 			this.useInternal=anInternalUsage;
     }
-
-    this.commLogMessageBuilder=null;
+    */
 
 		this.loggingCommLibrary=new CTATCommLibrary ();
 		this.loggingCommLibrary.setName ("commLoggingLibrary");
@@ -87,6 +89,8 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
     // Make sure we have a session configured in case the developer forgets upon first use
 		this.generateSession ();
+
+		//this.commLogMessageBuilder=new CTATLogMessageBuilder (); // Make sure we have at least something
 	}
 
 	/**
@@ -94,14 +98,14 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	*/
 	getLastSAI () {
 		return (lastSAI);
-	};
+	}
 	
 	/**
 	*
 	*/
 	assignLogListener (aListener) {
 		this.logListener=aListener;
-	};
+	}
 
 	/**
 	*
@@ -110,62 +114,63 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.useVars ['session_id']=("ctat_session_"+this.guidGenerator.guid ());
 
 		return (this.useVars ['session_id']);
-	};
+	}
+
 	/**
 	*
 	*/
 	setLogClassName (aValue) {
 		this.logclassname=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setDatasetName (aValue) {
 		this.datasetName=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setDatasetLevelName (aValue) {
 		this.datasetLevelName=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setDatasetLevelType (aValue) {
 		this.datasetLevelType=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setSchool (aValue) {
 		this.school=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setPeriod (aValue) {
 		this.period=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setDescription (aValue) {
 		this.description=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setInstructor (aValue) {
 		this.instructor=aValue;
-	};
+	}
 
 
 	/**
@@ -173,40 +178,40 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	*/
 	setProblemName (aValue) {
 		this.problem_name=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setProblemContext (aValue) {
 		this.problem_context=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	setUserID (aValue) {
 		this.userid=aValue;
-	};
+	}
 
 	/**
 	*
 	*/
 	getLoggingCommLibrary () {
 		return (this.loggingCommLibrary);
-	};
+	}
 	/**
 	*
 	*/
 	setUseSessionLog (aValue) {
 		this.useSessionLog=aValue;
-	};
+	}
 	/**
 	*
 	*/
 	setLoggingURL (aURL) {
 		this.getLoggingCommLibrary ().setFixedURL (aURL);
-	};
+	}
   /**
   *
   */
@@ -219,6 +224,25 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	setLoggingURLProduction() {
     this.setLoggingURL("https://learnlab.web.cmu.edu/log/server");
 	}	
+
+	/**
+	 * <b>[Required]</b> The &#60;name&#62; attribute of the current context.
+	 * <p>The name attribute is used to indicate where the student is in the process of working on a tutor or problem.
+	 * The PSLC DataShop team has established some canonical values for this attribute that should be used,
+	 * displayed in <a href="http://pslcdatashop.web.cmu.edu/dtd/guide/context_message.html#table.context_message.name.values">Table 1, Recommended values for the &#60;context_message&#62; name attribute</a>.</p>
+	 * @param context_name A name for the current context, see table for a set of recommended names.
+	 */
+	setContextName(aName) {
+   this.context_name=aName;
+	}
+
+	/**
+	*
+	*/
+	getContextName () {
+	  return this.context_name;
+	}	
+
 	/**
 	*
 	*/
@@ -321,6 +345,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		if (this.commLogMessageBuilder==null) {
 			this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars);
+			this.commLogMessageBuilder.setContextName (this.getContextName());
 		}
 	}
 
@@ -330,14 +355,11 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	sendMessage (message) {
 		this.ctatdebug ("sendMessage ()");
 
-		//useDebugging=true;
 		this.ctatdebug ("Raw log message to send: " + message);
-		//useDebugging=false;
 
 		this.sendMessageInternal (message);
 
-		if (this.logListener!=null)
-		{
+		if (this.logListener!=null) {
 			this.logListener (message);
 		}
 	}
@@ -358,36 +380,24 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 			need to find a better way to handle this.
 		*/
 		if (this.useInternal==true) {
-			var logging = CTATConfiguration.get('Logging');
-			
-			if ((logging !='ClientToService') && (logging!='ClientToLogServer')) {
-				this.ctatdebug ("Logging is turned off, as per: " + logging);
-				return;
-			}
-			
-			var tsc = CTATConfiguration.get('tutoring_service_communication');
-			
-			if ((logging=='ClientToService') && ((tsc=='http') || (tsc=='https'))) {
-				var logURL = CTATConfiguration.get('remoteSocketURL')+":"+CTATConfiguration.get('remoteSocketPort')
-				this.setLoggingURL (logURL);
-
-				this.ctatdebug ("Reconfigured the logging url to be: " + logURL);
-			}
-
 			this.ctatdebug ("Pre encoded log message: " + message);
 			
 			if (message.indexOf ("<log_session_start")<0) {
-				message = xmlProlog + '<tutor_related_message_sequence version_number="' + DTDVersion + '">' + message + '</tutor_related_message_sequence>';
+				message = this.xmlProlog + '<tutor_related_message_sequence version_number="' + this.DTDVersion + '">' + message + '</tutor_related_message_sequence>';
 				message = this.commLogMessageBuilder.wrapForOLI (message);
 			}
 			
 			this.ctatdebug ("Encoded log message: " + message);
 			
-			CTATLMS.logEvent(message);
+			//CTATLMS.logEvent(message);
 
+      /* 
 			if (CTATConfiguration.get('log_service_url')) {
 				this.loggingCommLibrary.sendXMLNoBundle (message);
 			}	
+			*/
+
+			this.loggingCommLibrary.sendXMLNoBundle (message);
 		} else {
 			this.ctatdebug ("Use internal: " + this.useInternal);			
 			this.loggingCommLibrary.sendXMLNoBundle (message);
@@ -402,12 +412,9 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.initCheck ();
 
-		//useDebugging=true;
 		this.logSessionStart ();
 
 		this.sendMessage (this.commLogMessageBuilder.createContextMessage(true));
-
-		//useDebugging=false;
 	}
 
 	/**
@@ -417,31 +424,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.ctatdebug ("logSessionStart ()");
 
 		this.initCheck ();
-
-		//useOLILogging=true;
-
-		//var vars=CTATConfiguration.getRawFlashVars ();
-
-		/*
-		if (useInternal==true)
-		{
-			var vars=flashVars.getRawFlashVars ();
-
-			if ((vars ['DeliverUsingOLI']!=undefined) && (vars ['DeliverUsingOLI']!=null))
-			{
-				if (vars ['DeliverUsingOLI']=='true')
-				{
-					this.ctatdebug ('Turning useOLILogging on ...');
-					useOLILogging=true;
-				}
-				else
-				{
-					this.ctatdebug ('Turning useOLILogging off ...');
-					useOLILogging=false;
-				}
-			}
-		}
-		*/
 
 		if (this.useVars ['SessionLog']!=undefined) {
 			if (this.useVars ['SessionLog']=='false' || (typeof (this.useVars ['SessionLog'])=='boolean' && this.useVars ['SessionLog']===false)) {
@@ -453,8 +435,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 			}
 		}
 
-		// Don't send this if we're running in OLI because the OLI environment
-		// well send one for us!
 		if (this.useSessionLog===true) {
 			this.sendMessage (this.commLogMessageBuilder.createLogSessionStart(this.useVars));
 		}

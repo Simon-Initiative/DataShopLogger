@@ -17,24 +17,6 @@ export default class OLILogLibraryBase extends SimonBase {
 		this.customFieldNames=[];
 		this.customFieldValues=[];
   }
-
-	/**
-	 * <b>[Required]</b> The &#60;name&#62; attribute of the current context.
-	 * <p>The name attribute is used to indicate where the student is in the process of working on a tutor or problem.
-	 * The PSLC DataShop team has established some canonical values for this attribute that should be used,
-	 * displayed in <a href="http://pslcdatashop.web.cmu.edu/dtd/guide/context_message.html#table.context_message.name.values">Table 1, Recommended values for the &#60;context_message&#62; name attribute</a>.</p>
-	 * @param context_name A name for the current context, see table for a set of recommended names.
-	 */
-	setContextName(context_name) {
-		CTATLogMessageBuilder.contextGUID = context_name;
-	}
-
-	/**
-	*
-	*/
-	getContextName () {
-		return CTATLogMessageBuilder.contextGUID;
-	}
 	
 	/**
 	 * Formats Date objects into Datashop's prefered format.

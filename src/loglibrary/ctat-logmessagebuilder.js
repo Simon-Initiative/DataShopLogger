@@ -48,7 +48,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		 */
 		this.xmlProlog = '<?xml version="1.0" encoding="UTF-8"?>';
 
-		this.contextGUID = '';
+		this.contextGUID = "bingo";
   }
 
 	/**
@@ -58,15 +58,15 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	 * displayed in <a href="http://pslcdatashop.web.cmu.edu/dtd/guide/context_message.html#table.context_message.name.values">Table 1, Recommended values for the &#60;context_message&#62; name attribute</a>.</p>
 	 * @param	context_name	A name for the current context, see table for a set  of recommended names.
 	 */
-	setContextName(context_name) {
-		this.contextGUID = context_name;
+	setContextName(aName) {
+		this.contextGUID = aName;
 	}
 
 	/**
 	*
 	*/
 	getContextName() {
-		this.contextGUID;
+		return this.contextGUID;
 	}
 
 	/**
@@ -110,7 +110,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	*	</dataset>
 	*/
 	createContextMessage (aWrapForOLI) {
-		this.ctatdebug("createContextMessage()");
+		this.ctatdebug("createContextMessage("+this.getContextName()+")");
 
 		var now=new Date();
 
@@ -165,10 +165,10 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		//if (vars ['DeliverUsingOLI']=='false')
 		//{
 			
-			var datasetLevelTypes = this.flashVars['dataset_level_name1'];
-			var datasetLevelNames = this.flashVars['dataset_level_type1'];
+			var datasetLevelTypes = this.flashVars['dataset_level_type1'];
+			var datasetLevelNames = this.flashVars['dataset_level_name1'];
 
-			this.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
+			//this.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
 
 			if ((datasetLevelTypes!=null) && (datasetLevelNames!=null)) {
 				this.ctatdebug ("We have valid data set names and types, adding to message ...");
@@ -482,7 +482,7 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	createGenericMessage(logMessage,wrapForOLI) {
 		this.ctatdebug ("createGenericMessage()");
 
-		var vars=flashVars.getRawFlashVars ();
+		var vars=this.flashVars;
 
 		var messageString = xmlHeader+'<message context_message_id="'+this.getContextName()+'">';
 		messageString+=logMessage;
@@ -501,12 +501,10 @@ export default class CTATLogMessageBuilder extends SimonBase {
 	}
 
 	/**
-	 *
+	 * https://pslcdatashop.web.cmu.edu/help?page=importFormatTd#note-2
 	 */
 	makeMetaElement (timeStamp) {
 		this.ctatdebug ("makeMetaElement ()");
-
-		//var vars=flashVars.getRawFlashVars ();
 
 		var meta='<meta>';
 		meta += '<user_id>'+this.flashVars['user_guid']+'</user_id>';
@@ -528,10 +526,11 @@ export default class CTATLogMessageBuilder extends SimonBase {
 		var now=new Date();
 
 		//var vars=flashVars.getRawFlashVars ();
+	  var vars=this.flashVars;
 
 		messageString = encodeURIComponent(messageString);
 
-		var wrapper = xmlProlog + '<log_action ';
+		var wrapper = this.xmlProlog + '<log_action ';
 		wrapper += 'auth_token="'+encodeURIComponent(vars ['auth_token'])+'" ';
 
 		if ((vars ['log_session_id']!=undefined) && (vars ['session_id']!=null)) {
