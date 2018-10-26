@@ -1,6 +1,4 @@
 
-//import './simon-global.js'
-
 var useDebugging=false;
 var useDebuggingBasic=true;
 

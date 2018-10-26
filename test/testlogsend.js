@@ -10,6 +10,9 @@ export default function() {
   var loggingLibrary = new CTATLoggingLibrary (false);
   var guidGenerator=new CTATGuid ();
 
+  loggingLibrary.setLogFormat ("CTAT"); // This is the default 
+  loggingLibrary.setLoggingURLQA ();
+
   loggingLibrary.setDatasetName("DataShop Unit Test");
   loggingLibrary.setDatasetLevelName ("Unit1.0");
   loggingLibrary.setDatasetLevelType ("Unit");
@@ -20,15 +23,7 @@ export default function() {
   loggingLibrary.setProblemName ("problem1");
   loggingLibrary.setProblemContext ("Unit Test");
   loggingLibrary.setContextName (guidGenerator.guid ());
-  loggingLibrary.setUserID ("anonymous");
-  loggingLibrary.setLoggingURLQA ();
-
-/*
-  CTATConfiguration.set("dataset_level_name1", "Unit1.0");
-  CTATConfiguration.set("dataset_level_type1", "unit");
-  CTATConfiguration.set("dataset_level_name2", "Section1.0");
-  CTATConfiguration.set("dataset_level_type2", "section");  
-*/
+  loggingLibrary.setUserID ("nbier");
 
   /*
   <?xml version="1.0" encoding="UTF-8"?>

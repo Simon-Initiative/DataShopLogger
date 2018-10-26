@@ -8,12 +8,12 @@
 	message=com.beginmind.login.service.InvalidSessionException: invalid session token
 */
 
-//import $ from 'jquery';
 import * as tools from '../simon-lms-tools.js';
 import SimonBase from '../simon-base.js';
 import CTATLogMessageBuilder from './ctat-logmessagebuilder.js'
+import OLIXAPIMessageBuilder from './ctat-xapilogmessagebuilder.js'
 import OLILogLibraryBase from './oli-loglibrarybase.js'
-import CTATCommLibrary from '../comm/ctat-commlibrary.js'
+import CTATCommLibrary from '../ctat-commlibrary.js'
 import CTATGuid from '../tools/ctat-guid.js'
 import SAI from '../sai.js'
 import ActionEvaluationData from '../evaluationdata.js'
@@ -44,6 +44,10 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		// The standard XMLProlog, we actually reference this a lot.
 		this.xmlProlog='<?xml version="1.0" encoding="UTF-8"?>';
+
+    // Set the default message format to DataShop. This is only a default. Developers are
+    // encouraged to ensure that the message encoder corresponds to the desired format.
+    this.logFormat="DATASHOP";
 
 		this.useSessionLog=true;
 		this.useInternal=true;
@@ -89,8 +93,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
     // Make sure we have a session configured in case the developer forgets upon first use
 		this.generateSession ();
-
-		//this.commLogMessageBuilder=new CTATLogMessageBuilder (); // Make sure we have at least something
 	}
 
 	/**
@@ -99,7 +101,21 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	getLastSAI () {
 		return (lastSAI);
 	}
-	
+
+	/**
+	*
+	*/
+	setLogFormat (aFormat) {
+		this.logFormat=aFormat;
+	}
+
+	/**
+	*
+	*/
+	getLogFormat () {
+		return (this.logFormat);
+	}
+
 	/**
 	*
 	*/
@@ -331,8 +347,9 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	}
 
 	/**
-	*
-	*/
+	 * Setup all the moving parts of the library. After this you should be good to call any
+	 * of the public log API methods.
+	 */
 	initCheck () {
 		this.ctatdebug ("initCheck ()");
 
@@ -344,7 +361,18 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		}
 
 		if (this.commLogMessageBuilder==null) {
-			this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars);
+			if (this.logFormat=="DATASHOP") {
+			  this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars);
+      }
+
+      if (this.logFormat=="XAPI") {
+      	this.commLogMessageBuilder=new OLIXAPIMessageBuilder (this.useVars);
+      }
+
+      if (this.commLogMessageBuilder==null) {
+      	this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars);
+      }
+
 			this.commLogMessageBuilder.setContextName (this.getContextName());
 		}
 	}
@@ -374,34 +402,43 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 			this.ctatdebug ("Warning: loggingDisabled==true");
 			return;
 		}
+
+		var formatHandled=false;
 		
 		/**
 			WARNING! The following code is executed every time we send a message! We
 			need to find a better way to handle this.
 		*/
-		if (this.useInternal==true) {
-			this.ctatdebug ("Pre encoded log message: " + message);
-			
-			if (message.indexOf ("<log_session_start")<0) {
-				message = this.xmlProlog + '<tutor_related_message_sequence version_number="' + this.DTDVersion + '">' + message + '</tutor_related_message_sequence>';
-				message = this.commLogMessageBuilder.wrapForOLI (message);
-			}
-			
-			this.ctatdebug ("Encoded log message: " + message);
-			
-			//CTATLMS.logEvent(message);
+		if (this.commLogMessageBuilder.getMessageFormat ()=="XML") {
 
-      /* 
-			if (CTATConfiguration.get('log_service_url')) {
+			formatHandled=true;
+
+			if (this.useInternal==true) {
+		  	this.ctatdebug ("Pre encoded log message: " + message);
+				
+				if (message.indexOf ("<log_session_start")<0) {
+					message = this.xmlProlog + '<tutor_related_message_sequence version_number="' + this.DTDVersion + '">' + message + '</tutor_related_message_sequence>';
+					message = this.commLogMessageBuilder.wrapForOLI (message);
+				}
+				
+				this.ctatdebug ("Encoded log message: " + message);
+				
 				this.loggingCommLibrary.sendXMLNoBundle (message);
-			}	
-			*/
+			} else {
+				this.ctatdebug ("Use internal: " + this.useInternal);			
+				this.loggingCommLibrary.sendXMLNoBundle (message);
+			}
+	  } 
 
-			this.loggingCommLibrary.sendXMLNoBundle (message);
-		} else {
-			this.ctatdebug ("Use internal: " + this.useInternal);			
-			this.loggingCommLibrary.sendXMLNoBundle (message);
-		}
+	  if (this.commLogMessageBuilder.getMessageFormat ()=="JSON") {
+	  	formatHandled=true;
+
+	  	this.loggingCommLibrary.sendJSON(message);
+	  }
+
+	  if (formatHandled==false) {
+	  	this.ctatdebug ("Internal error: unable to establish logging format, message not sent");
+	  }
 	}
 
 	/**

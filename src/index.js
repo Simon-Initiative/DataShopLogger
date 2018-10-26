@@ -3,9 +3,7 @@
 import './simon-lms-tools.js';
 import SimonBase from './simon-base.js';
 import CTATXML from './xml.js';
-import CTATConnection from './comm/ctat-connection.js';
-import CTATWSConnection from './comm/ctat-wsconnection.js';
-import CTATCommLibrary from './comm/ctat-commlibrary.js';
+import CTATCommLibrary from './ctat-commlibrary.js';
 import OLILogLibraryBase from './loglibrary/oli-loglibrarybase.js';
 import CTATLogMessageBuilder from './loglibrary/ctat-logmessagebuilder.js'
 import CTATLoggingLibrary from './loglibrary/ctat-logginglibrary.js';

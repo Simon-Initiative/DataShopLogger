@@ -1,8 +1,6 @@
 
-import $ from 'jquery';
-import SimonBase from '../simon-base.js';
-//import CTATWSConnection from '../comm/ctat-wsconnection.js';
-//import CTATConnection from '../comm/ctat-connection.js';
+//import $ from 'jquery';
+import SimonBase from './simon-base.js';
 import axios from 'axios' // https://www.npmjs.com/package/axios
 
 var bundleFormatter="";
@@ -204,6 +202,13 @@ export default class CTATCommLibrary extends SimonBase {
 	/**
 	 *
 	 */
+	getFixedURL () {
+		return (this.getURL ());
+	}	
+
+	/**
+	 *
+	 */
 	getURL () {
 		this.ctatdebug ("getURL ()");
 
@@ -233,6 +238,40 @@ export default class CTATCommLibrary extends SimonBase {
 	/**
 	 *
 	 */
+	sendJSON (aMessage) {
+		this.ctatdebug ('sendJSON ('+aMessage+')');
+
+		if (this.useBundling===true) {
+			if (this.inBundle===true) {
+				this.ctatdebug ('Bundling ...');
+
+				this.bundleFormatter+=aMessage;
+				return;
+			} else {
+				this.bundleFormatter=aMessage;
+			}
+		} else {
+			this.bundleFormatter=aMessage;
+		}
+
+		//var vars=flashVars.getRawFlashVars ();
+
+		//var url=this.getURL ();
+
+		var formatted=this.bundleFormatter;
+
+		axios.post(this.getFixedURL (),
+      formatted, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(res=>{
+        console.log("status: " + res.status);
+        console.log("status: " + res.statusText);
+      }).catch(err=>{console.log("error: " + err)});
+	}	
+
+	/**
+	 *
+	 */
 	sendXML (aMessage) {
 		this.ctatdebug ('sendXML ('+aMessage+')');
 
@@ -249,7 +288,7 @@ export default class CTATCommLibrary extends SimonBase {
 			this.bundleFormatter=aMessage;
 		}
 
-		var vars=flashVars.getRawFlashVars ();
+		//var vars=flashVars.getRawFlashVars ();
 
 		var url=this.getURL ();
 
@@ -267,7 +306,7 @@ export default class CTATCommLibrary extends SimonBase {
 		}
 		*/
 
-		axios.post('https://pslc-qa.andrew.cmu.edu/log/server',
+		axios.post(this.setFixedURL,
       xmlString, {
         headers: {'Content-Type': 'text/xml'}
       }).then(res=>{
@@ -347,6 +386,8 @@ export default class CTATCommLibrary extends SimonBase {
 	send (url) {
 		this.ctatdebug ('send ('+url+')');
 
+		this.setFixedURL=url;
+
     axios.get(url).then(function (res) {
         console.log("status: " + res.status);
         console.log("statusText: " + res.statusText);
@@ -363,6 +404,8 @@ export default class CTATCommLibrary extends SimonBase {
 	*/
 	send_post_variables (url,variables) {
 		this.ctatdebug ('send_post_variables ('+url+')');
+
+		this.setFixedURL=url;
 
 		var data="";
 
@@ -400,6 +443,8 @@ export default class CTATCommLibrary extends SimonBase {
 			return;
 		}
 		*/
+
+		this.setFixedURL=url;
 
 		console.log ("Outoing on wire: \n" + data +  "\n");
 
