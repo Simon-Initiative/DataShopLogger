@@ -1,4 +1,5 @@
 import SimonBase from '../simon-base.js';
+import LogConfiguration from '../logconfiguration.js';
 
 /**
  * 
@@ -8,8 +9,10 @@ export default class OLIMessageBuilderBase extends SimonBase {
   /**
   *
   */
-  constructor (aClassname,anInstancename,aVars) {
+  constructor (aClassname, anInstancename, aVars, aConfiguration) {
     super (aClassname,anInstancename);
+
+    this.logConfiguration=aConfiguration;
 
     this.customFieldNames=[];
     this.customFieldValues=[];

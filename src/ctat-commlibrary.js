@@ -1,12 +1,8 @@
 
 //import $ from 'jquery';
 import SimonBase from './simon-base.js';
+import LogConfiguration from './logconfiguration.js';
 import axios from 'axios' // https://www.npmjs.com/package/axios
-
-var bundleFormatter="";
-var inBundle=false;
-var useBundling=false;
-var useOLIEncoding=false;
 
 /**
  * Maintain a list of outstanding and completed XHR requests, to be careful that they don't clobber each other.
@@ -18,8 +14,10 @@ export default class CTATCommLibrary extends SimonBase {
   /**
    *
    */
-  constructor (aHandler, aUseScrim) {
+  constructor (aConfiguration /*aHandler, aUseScrim*/) {
   	super ("CTATCommLibrary","commlibrary");
+
+    this.logConfiguration=aConfiguration;
 
 		this.authenticityToken = "";
 
@@ -27,14 +25,19 @@ export default class CTATCommLibrary extends SimonBase {
 		this.fixedURL="";
 		this.httpreqindex=0;
 		this.httprequests=[];
-		this.httphandler=(aHandler ? aHandler : null);
-		this.useScrim=(aUseScrim == null ? true : aUseScrim);
+		//this.httphandler=(aHandler ? aHandler : null);
+		//this.useScrim=(aUseScrim == null ? true : aUseScrim);
 		this.useCommSettings=true;
 		this.messageListener=null;
 		this.pointer = this;
 		this.socketType="http";
 		this.connectionRefusedMessage="ERROR_CONN_TS";
 		this.fileTobeLoaded="";
+
+    this.bundleFormatter="";
+    this.inBundle=false;
+    this.useBundling=false;
+    this.useOLIEncoding=false;		
 	}
 
 	/**

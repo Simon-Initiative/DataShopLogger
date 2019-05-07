@@ -31,8 +31,8 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
   /**
   *
   */
-	constructor (aVars) {
-		super ("CTATLogMessageBuilder","logmessagebuilder",aVars);
+	constructor (aVars, aConfiguration) {
+		super ("CTATLogMessageBuilder","logmessagebuilder",aVars, aConfiguration);
 
 		// Blanked this out to kill a bug that generated extra XML headers. Used to be = '<?xml version="1.0" encoding="UTF-8"?>'
 		this.xmlHeader = '';

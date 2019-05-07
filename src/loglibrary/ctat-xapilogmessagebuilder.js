@@ -33,8 +33,8 @@ export default class OLIXAPIMessageBuilder extends OLIMessageBuilderBase {
   /**
   *
   */
-	constructor (aVars) {
-		super ("OLIXAPIMessageBuilder","logmessagebuilder",aVars);
+	constructor (aVars, aConfiguration) {
+		super ("OLIXAPIMessageBuilder", "logmessagebuilder", aVars, aConfiguration);
 	
 	  this.message={};
 	

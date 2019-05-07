@@ -10,6 +10,7 @@
 
 import * as tools from '../simon-lms-tools.js';
 import SimonBase from '../simon-base.js';
+import LogConfiguration from '../logconfiguration.js';
 import CTATLogMessageBuilder from './ctat-logmessagebuilder.js'
 import OLIXAPIMessageBuilder from './ctat-xapilogmessagebuilder.js'
 import OLILogLibraryBase from './oli-loglibrarybase.js'
@@ -28,9 +29,10 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	/**
 	*
 	*/
-	constructor (anInternalUsage) {
+	constructor (aConfiguration) {
 		super ("CTATLoggingLibrary","commLoggingLibrary");
 
+    this.logConfiguration=aConfiguration;
 		this.pointer=this;
 
 		// The current version of this LoggingLibrary.
@@ -83,7 +85,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
     }
     */
 
-		this.loggingCommLibrary=new CTATCommLibrary ();
+		this.loggingCommLibrary=new CTATCommLibrary (this.logConfiguration);
 		this.loggingCommLibrary.setName ("commLoggingLibrary");
 		this.loggingCommLibrary.setUseCommSettings (true);
 		this.loggingCommLibrary.setConnectionRefusedMessage ("ERROR_CONN_LS");
@@ -362,15 +364,15 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		if (this.commLogMessageBuilder==null) {
 			if (this.logFormat=="DATASHOP") {
-			  this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars);
+			  this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars,this.logConfiguration);
       }
 
       if (this.logFormat=="XAPI") {
-      	this.commLogMessageBuilder=new OLIXAPIMessageBuilder (this.useVars);
+      	this.commLogMessageBuilder=new OLIXAPIMessageBuilder (this.useVars,this.logConfiguration);
       }
 
       if (this.commLogMessageBuilder==null) {
-      	this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars);
+      	this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars,this.logConfiguration);
       }
 
 			this.commLogMessageBuilder.setContextName (this.getContextName());
