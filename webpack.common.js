@@ -1,7 +1,7 @@
 /* global __dirname, require, module*/
 
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -69,7 +69,7 @@ module.exports = {
     extensions: ['.json', '.js']
   },
   plugins: [
-    new CleanWebpackPlugin(['lib'])
+    new CleanWebpackPlugin()
   ]
 };
 

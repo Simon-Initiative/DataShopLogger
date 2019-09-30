@@ -23,3 +23,9 @@ examples. To see the code in action execute:
 # Documentation
 
 https://github.com/Simon-Initiative/DataShopLogger/wiki
+
+Note re: Babel
+=======================================
+9/30/2019 - Dave Brown 
+Had to force babel-loader downgrade to version 7 (npm install babel-loader@7 --save-dev) for compatibility with Babel 6.  Should consider updating to the current verison, Babel 7.  Note difference in syntax (@babel/module vs. babel-module).  Will take some refactoring.
+
