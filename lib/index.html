@@ -1,34 +1,55 @@
 <html>
-  <head>
-    <script src="https://cdn.ctat.cs.cmu.edu/releases/latest/jquery.min.js"></script>
-    <script src="https://cdn.ctat.cs.cmu.edu/releases/latest/ctat.min.js"></script>
-  
-    <script>
-      CTATConfiguration.set("SessionLog", "true");
-      CTATConfiguration.set("Logging", "ClientToLogServer");
-      CTATConfiguration.set("dataset_name", "HTML5LoggingTest");
-      CTATConfiguration.set("dataset_level_name1", "Unit1.0");
-      CTATConfiguration.set("dataset_level_type1", "unit");
-      CTATConfiguration.set("dataset_level_name2", "Section1.0");
-      CTATConfiguration.set("dataset_level_type2", "section");
-      CTATConfiguration.set("problem_name", "AFractionsProblem");
-      CTATConfiguration.set("school_name", "CMU");
-      CTATConfiguration.set("instructor_name", "A Teacher Name");
-      CTATConfiguration.set("user_guid", "student1");
-      CTATConfiguration.set("class_name", "22-512");
-  
-      var loggingLibrary=new CTATLoggingLibrary (true);
-  
-      function testLogging ()
-      {
-        useDebugging=true;
-  
-        loggingLibrary.start ();
-      }
-  
-    </script>
-  </head>
-  <body>
-    <button type="button" onClick="testLogging ()">Start Log Session</button> 
-  </body>
+<head>
+<script src="https://cdn.ctat.cs.cmu.edu/releases/latest/jquery.min.js"></script>
+<script src="https://cdn.ctat.cs.cmu.edu/releases/latest/ctat.min.js"></script>
+<script src="datashoplogger.min.js"></script>
+
+<script >
+	CTATConfiguration.set("SessionLog", "true");
+	CTATConfiguration.set("Logging", "ClientToLogServer");
+	CTATConfiguration.set("log_service_url", "https://pslc-qa.andrew.cmu.edu/log/server");
+	CTATConfiguration.set("dataset_name", "HTML5LoggingTest");
+	CTATConfiguration.set("dataset_level_name1", "Unit1.0");
+	CTATConfiguration.set("dataset_level_type1", "unit");
+	CTATConfiguration.set("dataset_level_name2", "Section1.0");
+	CTATConfiguration.set("dataset_level_type2", "section");
+	CTATConfiguration.set("problem_name", "AFractionsProblem");
+	CTATConfiguration.set("school_name", "CMU");
+	CTATConfiguration.set("instructor_name", "A Teacher Name");
+	CTATConfiguration.set("user_guid", "student1");
+	CTATConfiguration.set("class_name", "22-512");
+
+    function lz(n, len) { // pad leading zeros to nonnegative n to generate len digits
+			let result="", nz=(n>0 ? len-Math.floor(Math.log10(n)) : len);
+			while(--nz > 0) result+="0";
+			return result+String(n);
+    }
+	function formatDate(d) { // format Date d to "yyyy-mm-dd HH:MM:SS.sss UTC"
+		return(
+			lz(d.getUTCFullYear(), 4)+"-"+
+			lz(d.getUTCMonth()+1, 2)+"-"+  // UTC month is 0-based
+			lz(d.getUTCDate(), 2)+" "+
+			lz(d.getUTCHours(), 2)+":"+
+			lz(d.getUTCMinutes(), 2)+":"+
+			lz(d.getUTCSeconds(), 2)+"."+
+			lz(d.getUTCMilliseconds(), 3)+" "+
+			"UTC"
+		);
+	}
+    let loggingLibrary=new CTATLoggingLibrary (true);
+    let sessionId="";
+    let lastTxID="";
+</script>
+
+<body>
+  <button type="button" onClick="sessionId || (sessionId=loggingLibrary.start())">Start Log Session</button> 
+  <input type="text" id="text1"
+    onBlur="lastTxID=loggingLibrary.logInterfaceAttempt(this.id, 'UpdateTextField', this.value)"/>
+  <select id="text1-eval" required
+    onBlur="var that=document.getElementById(this.id.replace(/-eval/,'')), unused=this.value && loggingLibrary.logResponse(lastTxID, that.id, 'UpdateTextField', that.value, 'RESULT', this.value, this.value=='Correct'?'successMsg':'buggyMsg')"/>
+    <option></option>
+    <option>Correct</option>
+    <option>Incorrect</option>
+  </select>
+</body>
 </html>
