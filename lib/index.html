@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <script src="https://cdn.ctat.cs.cmu.edu/releases/latest/jquery.min.js"></script>
+    <script src="https://cdn.ctat.cs.cmu.edu/releases/latest/ctat.min.js"></script>
+  
+    <script>
+      CTATConfiguration.set("SessionLog", "true");
+      CTATConfiguration.set("Logging", "ClientToLogServer");
+      CTATConfiguration.set("dataset_name", "HTML5LoggingTest");
+      CTATConfiguration.set("dataset_level_name1", "Unit1.0");
+      CTATConfiguration.set("dataset_level_type1", "unit");
+      CTATConfiguration.set("dataset_level_name2", "Section1.0");
+      CTATConfiguration.set("dataset_level_type2", "section");
+      CTATConfiguration.set("problem_name", "AFractionsProblem");
+      CTATConfiguration.set("school_name", "CMU");
+      CTATConfiguration.set("instructor_name", "A Teacher Name");
+      CTATConfiguration.set("user_guid", "student1");
+      CTATConfiguration.set("class_name", "22-512");
+  
+      var loggingLibrary=new CTATLoggingLibrary (true);
+  
+      function testLogging ()
+      {
+        useDebugging=true;
+  
+        loggingLibrary.start ();
+      }
+  
+    </script>
+  </head>
+  <body>
+    <button type="button" onClick="testLogging ()">Start Log Session</button> 
+  </body>
+</html>
