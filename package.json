@@ -1,7 +1,6 @@
 {
   "name": "datashoplogger",
   "version": "0.1.0",
-  "main": "lib/datashoplogger.js",
   "license": "MIT",
   "description": "A reference implementation of a client-side library that exposes an API that logs to DataShop",
   "repository": {

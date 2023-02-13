@@ -453,7 +453,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		}
 
 		if (this.useSessionLog===true) {
-			this.sendMessage (this.commLogMessageBuilder.createLogSessionStart(this.useVars));
+			this.sendMessage (this.commLogMessageBuilder.createLogSessionStart(this.logConfiguration));
 		}
 	}
 

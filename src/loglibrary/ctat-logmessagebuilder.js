@@ -83,7 +83,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var messageString=this.xmlHeader+'<context_message context_message_id="'+this.getContextName()+'" name="START_PROBLEM">';
 
-		if(!this.aWrapForOLI) {
+		if(!aWrapForOLI) {
 			messageString += this.makeMetaElement(now);
 		}
 
@@ -127,61 +127,52 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		//>---------------------------------------------------------------------
 		// <dataset>
 
-		//if (vars ['DeliverUsingOLI']=='false')
-		//{
-			
-			var datasetLevelTypes = this.logConfiguration['dataset_level_type1'];
-			var datasetLevelNames = this.logConfiguration['dataset_level_name1'];
+	    var dataset = '<dataset>';
+	    dataset += '<name><![CDATA['+vars ['dataset_name']+']]></name>';
 
-			//this.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
+	    var datasetLevelTypes=[];
+	    var datasetLevelNames=[];
+	    for(let p in vars) {
+		let match=null;
+		if(match=/dataset_level_type([0-9]+)/i.exec(p)) {
+		    datasetLevelTypes[match[1]]=vars[p];
+		}
+		if(match=/dataset_level_name([0-9]+)/i.exec(p)) {
+		    datasetLevelNames[match[1]]=vars[p];
+		}
+	    }
+	    let nLevels=0;
+	    datasetLevelNames.forEach(
+		(name, i) => {
+		    if(name) {
+			let type=datasetLevelTypes[i] || "level"+i;
+			dataset += '<level type="'+type+'"><name><![CDATA['+name+']]></name>';
+			nLevels++;
+		    }
+		}
+	    );
 
-			if ((datasetLevelTypes!=null) && (datasetLevelNames!=null)) {
-				this.ctatdebug ("We have valid data set names and types, adding to message ...");
+	    dataset += '<problem';
+	    if (vars ["problem_tutorflag"]!=undefined) {
+		dataset+=' tutorFlag="' + vars ["problem_tutorflag"]+'"';
+	    } else if (vars ["problem_otherproblemflag"]!=undefined) {
+		dataset+=' tutorFlag="' + vars ["problem_otherproblemflag"]+'"';
+	    }
+	    dataset += '><name><![CDATA['+vars ['problem_name']+']]></name>';
 
-				var dataset = '<dataset>';
-				dataset += '<name>'+vars ['dataset_name']+'</name>';
+	    if (vars ['problem_context']!=undefined) {
+		dataset += '<context><![CDATA[' + vars ['problem_context'] + ']]></context>';
+	    } else {
+		dataset += '<context />';
+	    }
+	    dataset += '</problem>';
 
-				for (var k=0;k<datasetLevelTypes.length;k++) {
-					this.ctatdebug ("Adding ...");
+	    for (var l=0;l<nLevels;l++) {
+		dataset += '</level>';
+	    }
+	    dataset += '</dataset>';
+	    messageString += dataset;
 
-					dataset += '<level type="' + datasetLevelTypes[k] + '">';
-					dataset += '<name>' + datasetLevelNames[k] + '</name>';
-				}
-
-				dataset += '<problem ';
-
-				this.ctatdebug ("Checking vars [\"problem_tutorflag\"]: " + vars ["problem_tutorflag"]);
-				this.ctatdebug ("Checking vars [\"problem_otherproblemflag\"]: " + vars ["problem_otherproblemflag"]);
-
-				if ((vars ["problem_tutorflag"]!=undefined) || (vars ["problem_otherproblemflag"]!=undefined)) {
-					if (vars ["problem_tutorflag"]!=undefined) {
-						dataset+=' tutorFlag="' + vars ["problem_tutorflag"]+'"';
-					} else {
-						if (vars ["problem_otherproblemflag"]!=undefined) {
-							dataset+='tutorFlag="' + vars ["problem_otherproblemflag"]+'"';
-						}
-					}
-				}
-
-				dataset += '>';
-				dataset += '<name>'+vars ['problem_name']+'</name>';
-
-				if (vars ['problem_context']!=undefined) {
-					dataset += '<context>' + vars ['problem_context'] + '</context>';
-				} else {
-					dataset += '<context />';
-				}
-
-				dataset += '</problem>';
-
-				for (var l=0;l<datasetLevelTypes.length;l++) {
-					dataset += '</level>';
-				}
-
-				dataset += '</dataset>';
-
-				messageString += dataset;
-			}
 		//}
 
 		//>---------------------------------------------------------------------
