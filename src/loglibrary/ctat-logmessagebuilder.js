@@ -31,8 +31,8 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
   /**
   *
   */
-	constructor (aVars, aConfiguration) {
-		super ("CTATLogMessageBuilder","logmessagebuilder",aVars, aConfiguration);
+	constructor (aConfiguration) {
+		super ("CTATLogMessageBuilder","logmessagebuilder", aConfiguration);
 
 		// Blanked this out to kill a bug that generated extra XML headers. Used to be = '<?xml version="1.0" encoding="UTF-8"?>'
 		this.xmlHeader = '';
@@ -46,21 +46,10 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
   }
 
 	/**
-	*
-	*/
-	makeSessionElement () {
-		if ((this.flashVars ['log_session_id']!=undefined) && (this.flashVars ['log_session_id']!=null)) {
-			return ('<session_id>'+this.flashVars ['log_session_id']+'</session_id>');
-		}
-
-		return ('<session_id>'+this.flashVars ['session_id']+'</session_id>');
-	}
-
-	/**
 	*	Builds a context message to the Data Shop specifications.
 	*	@see http://pslcdatashop.web.cmu.edu/dtd/guide/context_message.html
 	*	DataShop specification for context_message
-	* 	Quick example of the translation between data set flashvars and
+	* 	Sample translation between dataset logConfiguration parameters
 	*	the resulting XML:
 	*
 	*	"dataset_name":"BDE101 Test",
@@ -90,7 +79,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var now=new Date();
 
-		var vars=this.flashVars;
+		var vars=this.logConfiguration;
 
 		var messageString=this.xmlHeader+'<context_message context_message_id="'+this.getContextName()+'" name="START_PROBLEM">';
 
@@ -141,8 +130,8 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		//if (vars ['DeliverUsingOLI']=='false')
 		//{
 			
-			var datasetLevelTypes = this.flashVars['dataset_level_type1'];
-			var datasetLevelNames = this.flashVars['dataset_level_name1'];
+			var datasetLevelTypes = this.logConfiguration['dataset_level_type1'];
+			var datasetLevelNames = this.logConfiguration['dataset_level_name1'];
 
 			//this.ctatdebug ("Check: " + datasetLevelTypes.length + ", " + datasetLevelNames.length);
 
@@ -203,9 +192,9 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 			var condition="";
 
       /* 
-			var conditionNames = flashVars.getConditionNames();
-			var conditionTypes = flashVars.getConditionTypes();
-			var conditionDescriptions = flashVars.getConditionDescriptions();
+			var conditionNames = logConfiguration.getConditionNames();
+			var conditionTypes = logConfiguration.getConditionTypes();
+			var conditionDescriptions = logConfiguration.getConditionDescriptions();
       */
 
 			var conditionNames = [];
@@ -228,7 +217,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		//}
 		//>---------------------------------------------------------------------
 		// custom fields
-		//var cFields=flashVars.getCustomFields ();
+		//var cFields=logConfiguration.getCustomFields ();
 
 		var cFields=[];
 
@@ -263,7 +252,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		this.ctatdebug ("createSemanticEventToolMessage("+aTrigger+")");
 
 		var now=new Date();
-		var vars=this.flashVars;
+		var vars=this.logConfiguration;
 		var messageString=this.xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
 
 		//<meta>
@@ -323,7 +312,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		this.ctatdebug ("createUIEventToolMessage()");
 
 		var now = new Date();
-		var vars=this.flashVars;
+		var vars=this.logConfiguration;
 		var messageString = xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
 
 		//<meta>
@@ -373,7 +362,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		this.ctatdebug ("createTutorMessage()");
 
 		var now = new Date();
-		var vars=this.flashVars;
+		var vars=this.logConfiguration;
 		var messageString = this.xmlHeader+'<tutor_message context_message_id="'+this.getContextName()+'">';
 
 		//<meta>
@@ -458,7 +447,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 	createGenericMessage(logMessage,wrapForOLI) {
 		this.ctatdebug ("createGenericMessage()");
 
-		var vars=this.flashVars;
+		var vars=this.logConfiguration;
 
 		var messageString = xmlHeader+'<message context_message_id="'+this.getContextName()+'">';
 		messageString+=logMessage;
@@ -483,8 +472,8 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		this.ctatdebug ("makeMetaElement ()");
 
 		var meta='<meta>';
-		meta += '<user_id>'+this.flashVars['user_guid']+'</user_id>';
-		meta += '<session_id>'+this.flashVars['session_id']+'</session_id>';
+		meta += '<user_id>'+this.logConfiguration['user_guid']+'</user_id>';
+		meta += '<session_id>'+this.logConfiguration['session_id']+'</session_id>';
 		meta += '<time>'+this.formatTimeStamp(timeStamp)+'</time>';
 		meta += '<time_zone>'+this.getTimeZone ()+'</time_zone>';
 		meta += '</meta>';
@@ -492,45 +481,31 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		return meta;
 	}
 
-	/**
-	*
-	*/
-	wrapForOLI (messageString) {
-		this.ctatdebug ("wrapForOLI ()");
+    /**
+     *
+     */
+    wrapForOLI (messageString, useVars) {
+	this.ctatdebug ("wrapForOLI ()");
 
-		//var now=new Date(Date.UTC ());
-		var now=new Date();
+	var now=new Date();
+	var vars=useVars || {user_guid: "", source_id: "", session_id: ""};
 
-		//var vars=flashVars.getRawFlashVars ();
-	  var vars=this.flashVars;
+	messageString = encodeURIComponent(messageString);
 
-		messageString = encodeURIComponent(messageString);
+	var wrapper = this.xmlProlog + '<log_action ';
+	wrapper += 'auth_token="'+encodeURIComponent(vars ['auth_token'])+'" ';
+	wrapper += 'session_id="' + vars ['session_id'] + '" ';
+	wrapper += 'action_id="' + "EVALUATE_QUESTION" + '" ';
+	wrapper += 'user_guid="" ';  // leave blank if not log_session_start
+	wrapper += 'date_time="' + this.formatTimeStampOLI(now) + '" ';
+	wrapper += 'timezone="' + this.getTimeZone () + '" ';
+	wrapper += 'source_id="' + vars ['source_id'] + '" ';
+	wrapper += 'external_object_id="'+(vars ['activity_context_guid'] || "") + '" ';
+	wrapper += 'info_type="tutor_message.dtd">';
+	messageString = wrapper + messageString + "</log_action>";
 
-		var wrapper = this.xmlProlog + '<log_action ';
-		wrapper += 'auth_token="'+encodeURIComponent(vars ['auth_token'])+'" ';
-
-		if ((vars ['log_session_id']!=undefined) && (vars ['session_id']!=null)) {
-			wrapper += 'session_id="' + vars ['log_session_id'] + '" ';
-		} else {
-			wrapper += 'session_id="' + vars ['session_id'] + '" ';
-		}
-
-		wrapper += 'action_id="' + "EVALUATE_QUESTION" + '" ';
-		wrapper += 'user_guid="' + this.flashVars ['user_guid'] + '" ';
-		wrapper += 'date_time="' + this.formatTimeStampOLI(now) + '" ';
-		wrapper += 'timezone="' + this.getTimeZone () + '" ';
-		wrapper += 'source_id="' + this.flashVars ['source_id'] + '" ';
-
-		if (vars ['activity_context_guid']) {
-			wrapper += 'external_object_id="'+vars ['activity_context_guid']+'" info_type="tutor_message.dtd">';
-		} else {
-			wrapper += 'external_object_id="" info_type="tutor_message.dtd">';
-		}
-
-		messageString = wrapper + messageString + "</log_action>";
-
-		return messageString;
-	}
+	return messageString;
+    }
 
 	/**
 	 * Creates a SessionStart message.
@@ -547,8 +522,6 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 		this.ctatdebug ("Date: " + now);
 
 		var message='<log_session_start timezone="' + this.getTimeZone() + '" ';
-
-		//var aVarset=flashVars.getRawFlashVars ();
 
 		message += 'date_time="'+this.formatTimeStampOLI(now) + '" ';
 		message += 'auth_token="' + aVarset['auth_token'] + '" ';

@@ -14,7 +14,6 @@ import LogConfiguration from '../logconfiguration.js';
 import CTATLogMessageBuilder from './ctat-logmessagebuilder.js'
 import OLIXAPIMessageBuilder from './ctat-xapilogmessagebuilder.js'
 import OLILogLibraryBase from './oli-loglibrarybase.js'
-import CTATCommLibrary from '../ctat-commlibrary.js'
 import CTATGuid from '../tools/ctat-guid.js'
 import SAI from '../sai.js'
 import ActionEvaluationData from '../evaluationdata.js'
@@ -32,7 +31,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	constructor (aConfiguration) {
 		super ("CTATLoggingLibrary","commLoggingLibrary");
 
-    this.logConfiguration=aConfiguration;
+		this.logConfiguration=new LogConfiguration(aConfiguration);
 		this.pointer=this;
 
 		// The current version of this LoggingLibrary.
@@ -47,9 +46,12 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		// The standard XMLProlog, we actually reference this a lot.
 		this.xmlProlog='<?xml version="1.0" encoding="UTF-8"?>';
 
-    // Set the default message format to DataShop. This is only a default. Developers are
-    // encouraged to ensure that the message encoder corresponds to the desired format.
-    this.logFormat="DATASHOP";
+		// Set the default message format to DataShop. This is only a default. Developers are
+		// encouraged to ensure that the message encoder corresponds to the desired format.
+		this.logFormat="DATASHOP";
+
+		// transaction_id from last tool message
+		this.lastToolTxID="";
 
 		this.useSessionLog=true;
 		this.useInternal=true;
@@ -69,7 +71,8 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.datasetLevelName="UnassignedLevelName";
 		this.datasetLevelType="UnassignedLevelType";
 
-		this.context_name=tools.uuidv4();
+		this.guidGenerator=new CTATGuid ();
+		this.context_name="C"+this.guidGenerator.guid();
 
 		this.logListener=null;
 		
@@ -85,13 +88,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
     }
     */
 
-		this.loggingCommLibrary=new CTATCommLibrary (this.logConfiguration);
-		this.loggingCommLibrary.setName ("commLoggingLibrary");
-		this.loggingCommLibrary.setUseCommSettings (true);
-		this.loggingCommLibrary.setConnectionRefusedMessage ("ERROR_CONN_LS");
-		this.loggingCommLibrary.assignHandler (this);
-
-		this.guidGenerator=new CTATGuid ();
 
     // Make sure we have a session configured in case the developer forgets upon first use
 		this.generateSession ();
@@ -121,16 +117,10 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	/**
 	*
 	*/
-	assignLogListener (aListener) {
-		this.logListener=aListener;
-	}
-
-	/**
-	*
-	*/
 	generateSession () {
-		this.useVars ['session_id']=("ctat_session_"+this.guidGenerator.guid ());
-
+		this.useVars ['session_id']=
+			this.logConfiguration ['session_id'] ||
+			(this.logConfiguration ['session_id'] = "ctat_session_"+this.guidGenerator.guid ());
 		return (this.useVars ['session_id']);
 	}
 
@@ -190,7 +180,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.instructor=aValue;
 	}
 
-
 	/**
 	*
 	*/
@@ -211,13 +200,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	setUserID (aValue) {
 		this.userid=aValue;
 	}
-
-	/**
-	*
-	*/
-	getLoggingCommLibrary () {
-		return (this.loggingCommLibrary);
-	}
 	/**
 	*
 	*/
@@ -228,19 +210,19 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	*
 	*/
 	setLoggingURL (aURL) {
-		this.getLoggingCommLibrary ().setFixedURL (aURL);
+		this.logConfiguration['log_service_url']=aURL;
 	}
-  /**
-  *
-  */
+	/**
+	 *
+	 */
 	setLoggingURLQA() {
-    this.setLoggingURL("https://pslc-qa.andrew.cmu.edu/log/server");
+		this.setLoggingURL("https://pslc-qa.andrew.cmu.edu/log/server");
 	}
-  /**
-  *
-  */
+	/**
+	 *
+	 */
 	setLoggingURLProduction() {
-    this.setLoggingURL("https://learnlab.web.cmu.edu/log/server");
+		this.setLoggingURL("https://learnlab.web.cmu.edu/log/server");
 	}	
 
 	/**
@@ -251,7 +233,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	 * @param context_name A name for the current context, see table for a set of recommended names.
 	 */
 	setContextName(aName) {
-   this.context_name=aName;
+		this.context_name=aName;
 	}
 
 	/**
@@ -361,22 +343,22 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 				this.useInternalConfigured=true;
 			}
 		}
-
 		if (this.commLogMessageBuilder==null) {
-			if (this.logFormat=="DATASHOP") {
-			  this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars,this.logConfiguration);
-      }
-
-      if (this.logFormat=="XAPI") {
-      	this.commLogMessageBuilder=new OLIXAPIMessageBuilder (this.useVars,this.logConfiguration);
-      }
-
-      if (this.commLogMessageBuilder==null) {
-      	this.commLogMessageBuilder=new CTATLogMessageBuilder (this.useVars,this.logConfiguration);
-      }
-
+			if (this.logFormat=="XAPI") {
+      			this.commLogMessageBuilder=new OLIXAPIMessageBuilder (this.logConfiguration);
+			} else {
+   				this.commLogMessageBuilder=new CTATLogMessageBuilder (this.logConfiguration);
+			}
 			this.commLogMessageBuilder.setContextName (this.getContextName());
 		}
+	}
+
+	/**
+	 * Generate a transaction id: a UUID prefixed with "T".
+	 * @returns {string}
+	 */
+	makeTransactionID() {
+		return "T"+this.guidGenerator.guid();
 	}
 
 	/**
@@ -416,31 +398,27 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 			formatHandled=true;
 
 			if (this.useInternal==true) {
-		  	this.ctatdebug ("Pre encoded log message: " + message);
+		  		this.ctatdebug ("Pre encoded log message: " + message);
 				
 				if (message.indexOf ("<log_session_start")<0) {
 					message = this.xmlProlog + '<tutor_related_message_sequence version_number="' + this.DTDVersion + '">' + message + '</tutor_related_message_sequence>';
-					message = this.commLogMessageBuilder.wrapForOLI (message);
+					message = this.commLogMessageBuilder.wrapForOLI (message, this.logConfiguration);
 				}
 				
 				this.ctatdebug ("Encoded log message: " + message);
 				
-				this.loggingCommLibrary.sendXMLNoBundle (message);
+				navigator.sendBeacon(this.logConfiguration['log_service_url'], message);
 			} else {
 				this.ctatdebug ("Use internal: " + this.useInternal);			
-				this.loggingCommLibrary.sendXMLNoBundle (message);
 			}
-	  } 
-
-	  if (this.commLogMessageBuilder.getMessageFormat ()=="JSON") {
-	  	formatHandled=true;
-
-	  	this.loggingCommLibrary.sendJSON(message);
-	  }
-
-	  if (formatHandled==false) {
-	  	this.ctatdebug ("Internal error: unable to establish logging format, message not sent");
-	  }
+		} 
+		if (formatHandled==false) {
+	  		console.error(
+				"Internal error: unable to establish logging format",
+				this.commLogMessageBuilder.getMessageFormat (),
+				"message not sent"
+			);
+		}
 	}
 
 	/**
@@ -488,13 +466,15 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	 * @param	semanticEventName		A name for the Semantic Event, usually "ATTEMPT"
 	 * @param	semanticEventSubtype	A subtype for the Semantic Event, commonly used to refer to tutor-performed actions
 	 */
-	logSemanticEvent (transactionID,
-									  sai,
-									  semanticEventName,
-									  semanticEventSubtype,
-									  aCustomFieldNames,
-									  aCustomFieldValues,
-										aTrigger) {
+	logSemanticEvent(
+		transactionID,
+		sai,
+		semanticEventName,
+		semanticEventSubtype,
+		aCustomFieldNames,
+		aCustomFieldValues,
+		aTrigger
+	) {
 		this.ctatdebug ("logSemanticEvent ("+aTrigger+")");
 
 		this.initCheck ();
@@ -508,13 +488,16 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.commLogMessageBuilder.addCustomFields (aCustomFieldNames,aCustomFieldValues);
 		this.commLogMessageBuilder.addCustomField ("tool_event_time",this.commLogMessageBuilder.formatTimeStamp (timeStamp) + " UTC");
 
-		var message=this.commLogMessageBuilder.createSemanticEventToolMessage (sai,
-																		  transactionID,
-																		  semanticEventName,
-																		  semanticEventSubtype,
-																		  true,
-																		  aTrigger);
+		var message=this.commLogMessageBuilder.createSemanticEventToolMessage(
+			sai,
+			this.lastToolTxID=transactionID||this.makeTransactionID(),
+			semanticEventName,
+			semanticEventSubtype,
+			true,
+			aTrigger
+        );
 		this.sendMessage (message);
+		return this.lastToolTxID;
 	}
 
 	/**
@@ -527,15 +510,17 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	 * @param	feedBack
 	 * @param	aSkillObject
 	 */
-	logTutorResponse (transactionID,
-							  		sai,
-							  		semanticName,
-							  	  semanticSubtype,
-							  		anEval,
-							  		feedBack,
-							  		aSkillObject,
-									  aCustomFieldNames,
-									  aCustomFieldValues) {
+	logTutorResponse (
+		transactionID,
+		sai,
+		semanticName,
+		semanticSubtype,
+		anEval,
+		feedBack,
+		aSkillObject,
+		aCustomFieldNames,
+		aCustomFieldValues
+	) {
 		this.ctatdebug("logTutorResponse ()");
 
 		this.initCheck ();
@@ -561,14 +546,16 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.ctatdebug("Creating tutor message ...");
 
-		var message=this.commLogMessageBuilder.createTutorMessage (sai,
-															  transactionID,
-															  semanticName,
-															  anEval,
-															  formattedFeedback,
-															  semanticSubtype,
-															  aSkillObject,
-															  true);
+		var message=this.commLogMessageBuilder.createTutorMessage (
+			sai,
+			transactionID || this.lastToolTxID,
+			semanticName,
+			anEval,
+			formattedFeedback,
+			semanticSubtype,
+			aSkillObject,
+			true
+		);
 		this.sendMessage (message);
 	}
 
@@ -592,13 +579,8 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	*/
 	start () {
 		this.ctatdebug ("start ()");
-
-		var sessionTag=this.generateSession ();
 		this.startProblem ();
-
-		//CTATScrim.scrim.scrimDown (); // Just in case
-
-		return (sessionTag);
+		return this.getContextName();
 	}
 
 	/**
@@ -608,15 +590,13 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	logInterfaceAttempt (aSelection,anAction,anInput,aCustomElementObject) {
 		this.ctatdebug ("logInterfaceAttempt ()");
 
-		var transactionID = this.guidGenerator.guid ();
+		var transactionID = this.makeTransactionID();
 
 		var sai=new SAI (aSelection,anAction,anInput);
 		
 		this.lastSAI=sai;
 
-		this.logSemanticEvent (transactionID,sai,"ATTEMPT","");
-
-		return (transactionID);
+		return this.logSemanticEvent (transactionID,sai,"ATTEMPT","");
 	}
 
 	/**
@@ -630,9 +610,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		
 		var transactionID = this.guidGenerator.guid ();
 
-		this.logSemanticEvent (transactionID,anSAI,"ATTEMPT","");
-
-		return (transactionID);
+		return this.logSemanticEvent (transactionID,anSAI,"ATTEMPT","");
 	}
 
 	/**
@@ -640,12 +618,14 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	* careful using this function since it might not be actively maintained!
 	* DO NOT REMOVE THIS METHOD. We depend on it for testing
 	*/
-	logResponse (transactionID,
-							 aSelection,anAction,anInput,
-							 semanticName,
-							 anEvaluation,
-						   anAdvice,
-							 aCustomElementObject) {
+	logResponse(
+		transactionID,
+		aSelection,anAction,anInput,
+		semanticName,
+		anEvaluation,
+		anAdvice,
+		aCustomElementObject
+	) {
 		this.ctatdebug ("logResponse ()");
 
 		var sai=new SAI (aSelection,anAction,anInput);
@@ -654,14 +634,14 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		evalObj.setEvaluation (anEvaluation);
 
 		if (aCustomElementObject==undefined) {
-			this.logTutorResponse (transactionID,
+			this.logTutorResponse (transactionID || this.lastToolTxID,
 								   sai,
 								   semanticName,
 								   "",
 								   evalObj,
 								   anAdvice);
 		} else {
-			this.logTutorResponse (transactionID,
+			this.logTutorResponse (transactionID || this.lastToolTxID,
 								   sai,
 								   semanticName,
 								   "",
@@ -678,26 +658,28 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	* careful using this function since it might not be actively maintained!
 	* DO NOT REMOVE THIS METHOD. We depend on it for testing	
 	*/
-	logResponseSAI (transactionID,
-									anSAI,
-									semanticName,
-									anEvaluation,
-									anAdvice,
-									aCustomElementObject) {
+	logResponseSAI(
+		transactionID,
+		anSAI,
+		semanticName,
+		anEvaluation,
+		anAdvice,
+		aCustomElementObject
+	) {
 		this.ctatdebug ("logResponse ()");
 
 		var evalObj=new ActionEvaluationData("");
 		evalObj.setEvaluation (anEvaluation);
 
 		if (aCustomElementObject==undefined) {
-			this.logTutorResponse (transactionID,
+			this.logTutorResponse (transactionID || this.lastToolTxID,
 								   anSAI,
 								   semanticName,
 								   "",
 								   evalObj,
 								   anAdvice);
 		} else {
-			this.logTutorResponse (transactionID,
+			this.logTutorResponse (transactionID || this.lastToolTxID,
 								   anSAI,
 								   semanticName,
 								   "",
@@ -716,3 +698,4 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.generateSession (); // just in case
 	}
 }
+window.CTATLoggingLibrary=CTATLoggingLibrary;

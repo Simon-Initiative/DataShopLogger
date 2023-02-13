@@ -1,0 +1,37 @@
+<html>
+<head>
+
+<script >
+  let params={};
+  params["SessionLog"]="true";
+  params["Logging"]="ClientToLogServer";
+  params["log_service_url"]="https://pslc-qa.andrew.cmu.edu/log/server";
+  params["dataset_name"]="HTML5LoggingTest";
+  params["dataset_level_name1"]="Unit1.0";
+  params["dataset_level_type1"]="unit";
+  params["dataset_level_name2"]="Section1.0";
+  params["dataset_level_type2"]="section";
+  params["problem_name"]="AFractionsProblem";
+  params["school_name"]="CMU";
+  params["instructor_name"]="A Teacher Name";
+  params["user_guid"]="student1";
+  params["class_name"]="22-512";
+
+  let loggingLibrary=null;
+  let sessionId="";
+  let lastTxID="";
+</script>
+
+<body onLoad="console.log(params, 'typeof datashoplogger', typeof datashoplogger) || (loggingLibrary=new CTATLoggingLibrary (params))">
+  <button type="button" onClick="sessionId || (sessionId=loggingLibrary.start())">Start Log Session</button> 
+  <input type="text" id="text1"
+    onBlur="lastTxID=loggingLibrary.logInterfaceAttempt(this.id, 'UpdateTextField', this.value)"/>
+  <select id="text1-eval" required
+    onBlur="var that=document.getElementById(this.id.replace(/-eval/,'')), unused=this.value && loggingLibrary.logResponse(lastTxID, that.id, 'UpdateTextField', that.value, 'RESULT', this.value, this.value=='Correct'?'successMsg':'buggyMsg')"/>
+    <option></option>
+    <option>Correct</option>
+    <option>Incorrect</option>
+  </select>
+  <script type="module" src="./src/loglibrary/ctat-logginglibrary.js"></script>
+</body>
+</html>

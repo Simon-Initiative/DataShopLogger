@@ -9,7 +9,7 @@ export default class OLIMessageBuilderBase extends SimonBase {
   /**
   *
   */
-  constructor (aClassname, anInstancename, aVars, aConfiguration) {
+  constructor (aClassname, anInstancename, aConfiguration) {
     super (aClassname,anInstancename);
 
     this.logConfiguration=aConfiguration;
@@ -18,8 +18,6 @@ export default class OLIMessageBuilderBase extends SimonBase {
     this.customFieldValues=[];
 
     this.contextGUID = "bingo";
-
-    this.flashVars=aVars;
 
     this.messageFormat="TEXT";
   }
@@ -71,6 +69,36 @@ export default class OLIMessageBuilderBase extends SimonBase {
   }
 
   /**
+   * Pad leading zeros to nonnegative n to generate len digits.
+   * @param {integer} n nonnegative number to format
+   * @param {integer} len minimum output length
+   * @return {string} n with enough leading zeros to reach length len
+   */
+  lz(n, len) { // 
+    let result="", nz=(n>0 ? len-Math.floor(Math.log10(n)) : len);
+    while(--nz > 0) result+="0";
+    return result+String(n);
+  }
+
+  /**
+   * Format Date d to "yyyy-mm-dd HH:MM:SS.sss UTC". Uses lz().
+   * @param {Date} d Date object to format
+   * @return {string} string of the form above
+   */
+  formatDate(d) {
+    return(
+      lz(d.getUTCFullYear(), 4)+"-"+
+      lz(d.getUTCMonth()+1, 2)+"-"+  // UTC month is 0-based
+      lz(d.getUTCDate(), 2)+" "+
+      lz(d.getUTCHours(), 2)+":"+
+      lz(d.getUTCMinutes(), 2)+":"+
+      lz(d.getUTCSeconds(), 2)+"."+
+      lz(d.getUTCMilliseconds(), 3)+" "+
+      "UTC"
+    );
+  }
+
+  /**
    * Formats Date objects into Datashop's prefered format.
    * @param stamp A Date object.
    * @return  A String in the proper format
@@ -102,7 +130,7 @@ export default class OLIMessageBuilderBase extends SimonBase {
 
     var msec = stamp.getUTCMilliseconds ();
     s+=".";
-    s+=msec;
+    s+=(msec<10?"00":(msec<100?"0":""))+msec;
 
     //s+=" UTC";
 
