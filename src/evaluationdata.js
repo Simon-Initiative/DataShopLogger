@@ -14,8 +14,8 @@ export default class ActionEvaluationData {
 	*/
 	constructor (anEval) {
 		this.classification="";
-		this.currentHintNumber=0;
-		this.totalHintsAvailable=0;
+		this.currentHintNumber=-1;
+		this.totalHintsAvailable=-1;
 		this.hintID= "";
 		this.evaluation=anEval;
   }
@@ -25,7 +25,7 @@ export default class ActionEvaluationData {
 	 * @param	classification	A string that classifies the evaluation.
 	 */
 	setClassification(classification) {
-		this.classification = classification;
+		this.classification = classification || "";
 	}
 
 	/**
@@ -41,7 +41,7 @@ export default class ActionEvaluationData {
 	 * @return	<code>true</code> if the ActionEvaluation has a clasification, <code>false</code> otherwise.
 	 */
 	hasClassification() {
-		return (this.classification != null);
+		return (this.classification != "");
 	}
 
 	/**
@@ -105,13 +105,17 @@ export default class ActionEvaluationData {
 		}
 
 		if (!this.isHint()) {
-			return this.retString;
+			return retString;
 		}
 
-		retString += 'current_hint_number="' + this.currentHintNumber + '" ';
-		retString += 'total_hints_available="' + this.totalHintsAvailable + '" ';
+		if(this.currentHintNumber >= 0) {
+			retString += 'current_hint_number="' + this.currentHintNumber + '" ';
+		}
+		if(this.totalHintsAvailable >= 0) {
+			retString += 'total_hints_available="' + this.totalHintsAvailable + '" ';
+		}
 
-		if(this.hintID !== "") {
+		if(this.hintID != null && this.hintID != "") {
 			retString += 'hint_id="' + this.hintID + '" ';
 		}
 

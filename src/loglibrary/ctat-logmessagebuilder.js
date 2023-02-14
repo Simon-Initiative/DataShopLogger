@@ -379,13 +379,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		//<action_evaluation> (0+)
 		var actionEvaluation = '<action_evaluation ';
-
-		if (evalObj.hasClassification()) {
-			if (evalObj.getAttributeString()!=null) {
-				actionEvaluation += evalObj.getAttributeString();
-			}
-		}
-
+	    	actionEvaluation += evalObj.getAttributeString();
 		actionEvaluation += '>'+evalObj.getEvaluation()+'</action_evaluation>';
 		messageString += actionEvaluation;
 

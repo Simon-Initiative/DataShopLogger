@@ -614,6 +614,24 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	}
 
 	/**
+	* Convenience function for the public API, not used by the CTAT library itself. 
+	*/
+	logInterfaceHintRequest (sel, act, inp, aCustomElementObject) {
+		this.ctatdebug ("logInterfaceHintRequest ()");
+
+		let sai=new SAI("", "", "");
+		Array.isArray(sel) ? sai.selectionArray=sel.slice() : sai.selectionArray[0]=sel;
+		Array.isArray(act) ? sai.actionArray=act.slice() : sai.actionArray[0]=act;
+		Array.isArray(inp) ? sai.inputArray=inp.slice() : sai.inputArray[0]=inp;
+
+		this.lastSAI=sai;
+		
+		var transactionID = this.guidGenerator.guid ();
+
+		return this.logSemanticEvent (transactionID,sai,"HINT_REQUEST","");
+	}
+
+	/**
 	* Convenience function for the public API, not used by the CTAT library itself. Be
 	* careful using this function since it might not be actively maintained!
 	* DO NOT REMOVE THIS METHOD. We depend on it for testing
@@ -630,27 +648,14 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		var sai=new SAI (aSelection,anAction,anInput);
 
-		var evalObj=new ActionEvaluationData("");
-		evalObj.setEvaluation (anEvaluation);
-
-		if (aCustomElementObject==undefined) {
-			this.logTutorResponse (transactionID || this.lastToolTxID,
-								   sai,
-								   semanticName,
-								   "",
-								   evalObj,
-								   anAdvice);
-		} else {
-			this.logTutorResponse (transactionID || this.lastToolTxID,
-								   sai,
-								   semanticName,
-								   "",
-								   evalObj,
-								   anAdvice,
-								   null, // Skills object
-								   aCustomElementObject.getCustomElementNames (),
-								   aCustomElementObject.getCustomElementTypes ());
-		}
+		return this.logResponseSAI(
+			transactionID,
+			sai,
+			semanticName,
+			anEvaluation,
+			anAdvice,
+			aCustomElementObject
+		);
 	}
 
 	/**
@@ -669,25 +674,37 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.ctatdebug ("logResponse ()");
 
 		var evalObj=new ActionEvaluationData("");
-		evalObj.setEvaluation (anEvaluation);
+		if(anEvaluation && anEvaluation.evaluation != null) {
+			evalObj.setEvaluation(anEvaluation.evaluation);
+			evalObj.setClassification(anEvaluation.classification);
+			evalObj.setCurrentHintNumber(anEvaluation.currentHintNumber);
+			evalObj.setTotalHintsAvailable(anEvaluation.totalHintsAvailable);
+			evalObj.setHintID(anEvaluation.hintID);
+		} else {
+			evalObj.setEvaluation (anEvaluation);
+		}
 
 		if (aCustomElementObject==undefined) {
-			this.logTutorResponse (transactionID || this.lastToolTxID,
-								   anSAI,
-								   semanticName,
-								   "",
-								   evalObj,
-								   anAdvice);
+			return this.logTutorResponse(
+				transactionID || this.lastToolTxID,
+				anSAI,
+				semanticName,
+				"",
+				evalObj,
+				anAdvice
+			);
 		} else {
-			this.logTutorResponse (transactionID || this.lastToolTxID,
-								   anSAI,
-								   semanticName,
-								   "",
-								   evalObj,
-								   anAdvice,
-								   null, // Skills object
-								   aCustomElementObject.getCustomElementNames (),
-								   aCustomElementObject.getCustomElementTypes ());
+			return this.logTutorResponse(
+				transactionID || this.lastToolTxID,
+				anSAI,
+				semanticName,
+				"",
+				evalObj,
+				anAdvice,
+				null, // Skills object
+				aCustomElementObject.getCustomElementNames (),
+				aCustomElementObject.getCustomElementTypes ()
+			);
 		}
 	}
 

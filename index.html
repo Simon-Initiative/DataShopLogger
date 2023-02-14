@@ -22,7 +22,9 @@
       let lastTxID="";
       let loggingLibrary=null;
     </script>
-
+    <style>
+			div { margin: 1em; }
+    </style>
   <body onLoad="console.log(params, 'typeof CTATLoggingLibrary', typeof CTATLoggingLibrary) || (loggingLibrary=new CTATLoggingLibrary(params))">
     <div>
       <label for="start">Click for session and context_message</label>
@@ -30,17 +32,55 @@
     </div>
     <div>
       <label for="text1">Enter a string and tab out for a tool_message</label>
-      <input type="text" id="text1"
-        onBlur="lastTxID=loggingLibrary.logInterfaceAttempt(this.id, 'UpdateTextField', this.value)"/>
+      <input type="text" id="text1" data-action="UpdateTextField"
+        onBlur="lastTxID=loggingLibrary.logInterfaceAttempt(this.id, this.dataset.action, this.value)"/>
     </div>
     <div>
       <label for="text1-evel">Choose an eval and tab out for a tutor_message</label>
       <select id="text1-eval" required
-        onBlur="var that=document.getElementById(this.id.replace(/-eval/,'')), unused=this.value && loggingLibrary.logResponse(lastTxID, that.id, 'UpdateTextField', that.value, 'RESULT', this.value, this.value=='Correct'?'successMsg':'buggyMsg')"/>
+        onBlur="var that=document.getElementById(this.id.replace(/-eval/,'')), unused=this.value && loggingLibrary.logResponse(lastTxID, that.id, that.dataset.action, that.value, 'RESULT', this.value, this.value=='Correct'?'successMsg':'buggyMsg')">
         <option></option>
         <option>Correct</option>
         <option>Incorrect</option>
       </select>
     </div>
+    <div>
+			<label for="text1-hbtn">Click for a hint request</label>
+			<button id="text1-hbtn" type="button" onClick="lastTxID=logHintRequest(this.id.replace(/-hbtn/,''))">Hint</button> 
+    </div>
+    <div>
+      <label for="text1-hints">Choose a hint and tab out for a hint response</label>
+      <select id="text1-hints" required
+        onBlur="var that=document.getElementById(this.id.replace(/-hints/,'')), unused=logHintResponse(lastTxID, that.id, that.dataset.action, that.value, this)">
+        <option></option>
+        <option>First hint</option>
+        <option>Second hint</option>
+      </select>
+    </div>
+  <script>
+    function logHintRequest(selection) {
+			let s="hint", a="ButtonPressed", i=-1;
+			if(document.getElementById(selection)?.value) {
+				a=[a, "PreviousFocus"];  // asks tutor to bias hint selection
+				s=[s, selection];        // selection of step to get bias
+			}
+			return loggingLibrary.logInterfaceHintRequest(s, a, i);  // strings or arrays
+		}
+    function logHintResponse(txID, sel, act, inp, hintSelect) {
+				return loggingLibrary.logResponse(
+						txID,
+						sel,
+						act,
+						inp,
+						"HINT",
+						{
+								evaluation: "HINT",
+								currentHintNumber: hintSelect.selectedIndex,
+								totalHintsAvailable: hintSelect.options.length-1,
+						},
+						hintSelect.value
+				);
+		}
+  </script>
   </body>
 </html>
