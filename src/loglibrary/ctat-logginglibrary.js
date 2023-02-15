@@ -72,7 +72,8 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.datasetLevelType="UnassignedLevelType";
 
 		this.guidGenerator=new CTATGuid ();
-		this.context_name="C"+this.guidGenerator.guid();
+		this.context_message_id="C"+this.guidGenerator.guid();
+		this.context_name="START_PROBLEM";
 
 		this.logListener=null;
 		
@@ -223,24 +224,30 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	 */
 	setLoggingURLProduction() {
 		this.setLoggingURL("https://learnlab.web.cmu.edu/log/server");
-	}	
-
-	/**
-	 * <b>[Required]</b> The &#60;name&#62; attribute of the current context.
-	 * <p>The name attribute is used to indicate where the student is in the process of working on a tutor or problem.
-	 * The PSLC DataShop team has established some canonical values for this attribute that should be used,
-	 * displayed in <a href="http://pslcdatashop.web.cmu.edu/dtd/guide/context_message.html#table.context_message.name.values">Table 1, Recommended values for the &#60;context_message&#62; name attribute</a>.</p>
-	 * @param context_name A name for the current context, see table for a set of recommended names.
-	 */
+	}
 	setContextName(aName) {
 		this.context_name=aName;
 	}
+	getContextName() {
+		return this.context_name;
+	}
 
 	/**
-	*
-	*/
-	getContextName () {
-	  return this.context_name;
+	 * <b>[Required]</b> The &#60;context_message_id&#62; attribute of the current context.
+	 * <p>This attribute value uniquely identifies an instance of a student attempting a
+	 * problem. All tool_ and tutor_messages generated from this instance must bear this
+	 * context_message_id value. If this method is not called, a UUID will be generated.
+	 * @param {string} context_message_id a unique id for this student-problem instance
+	 */
+	setContextMessageID(context_message_id) {
+		this.context_message_id=context_message_id;
+	}
+
+	/**
+	 * @return {string} this.context_message_id
+	 */
+	getContextMessageID () {
+	  return this.context_message_id;
 	}	
 
 	/**
