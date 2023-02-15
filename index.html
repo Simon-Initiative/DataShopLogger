@@ -51,7 +51,7 @@
     <div>
       <label for="text1-hints">Choose a hint and tab out for a hint response</label>
       <select id="text1-hints" required
-        onBlur="var that=document.getElementById(this.id.replace(/-hints/,'')), unused=logHintResponse(lastTxID, that.id, that.dataset.action, that.value, this)">
+        onBlur="var that=document.getElementById(this.id.replace(/-hints/,'')), unused=loggingLibrary.logHintResponse(lastTxID, that.id, that.dataset.action, that.value, this.selectedIndex, this.options.length-1, this.value)">
         <option></option>
         <option>First hint</option>
         <option>Second hint</option>
@@ -65,21 +65,6 @@
 				s=[s, selection];        // selection of step to get bias
 			}
 			return loggingLibrary.logInterfaceHintRequest(s, a, i);  // strings or arrays
-		}
-    function logHintResponse(txID, sel, act, inp, hintSelect) {
-				return loggingLibrary.logResponse(
-						txID,
-						sel,
-						act,
-						inp,
-						"HINT",
-						{
-								evaluation: "HINT",
-								currentHintNumber: hintSelect.selectedIndex,
-								totalHintsAvailable: hintSelect.options.length-1,
-						},
-						hintSelect.value
-				);
 		}
   </script>
   </body>

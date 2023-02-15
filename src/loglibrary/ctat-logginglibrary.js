@@ -632,6 +632,31 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	}
 
 	/**
+	 * Log a response to a hint request.
+	 */
+    logHintResponse(
+		transactionID,
+		aSelection, anAction, anInput,
+		currentHintNumber,
+		totalHintsAvailable,
+		hintText,
+		aCustomElementObject
+	) {
+		return this.logResponse(
+			transactionID,
+			aSelection, anAction, anInput,
+			"HINT_MSG",
+			{
+				"evaluation": "HINT",
+				"currentHintNumber": Number(currentHintNumber)||0,
+				"totalHintsAvailable": Number(totalHintsAvailable)||0
+			},
+			hintText,
+			aCustomElementObject
+		);
+	}
+
+	/**
 	* Convenience function for the public API, not used by the CTAT library itself. Be
 	* careful using this function since it might not be actively maintained!
 	* DO NOT REMOVE THIS METHOD. We depend on it for testing
