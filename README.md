@@ -15,10 +15,9 @@ To do a build that will be saved into ./lib,
 
   npm run build
 
-We encourage new developers and users to first try out our tests and
-examples. To see the code in action execute:
+We encourage new developers and users to first try out our sample code. To see a page using the library bring up this file in a browser:
 
-  npm run test
+  index.html
 
 # Documentation
 
