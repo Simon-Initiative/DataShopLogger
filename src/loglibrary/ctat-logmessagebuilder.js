@@ -81,7 +81,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var vars=this.logConfiguration;
 
-		var messageString=this.xmlHeader+'<context_message context_message_id="'+this.getContextName()+'" name="START_PROBLEM">';
+		var messageString=this.xmlHeader+'<context_message context_message_id="'+vars['context_message_id']+'" name="START_PROBLEM">';
 
 		if(!aWrapForOLI) {
 			messageString += this.makeMetaElement(now);
@@ -244,7 +244,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var now=new Date();
 		var vars=this.logConfiguration;
-		var messageString=this.xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
+		var messageString=this.xmlHeader+'<tool_message context_message_id="'+vars['context_message_id']+'">';
 
 		//<meta>
 		if (!wrapForOLI) {
@@ -304,7 +304,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var now = new Date();
 		var vars=this.logConfiguration;
-		var messageString = xmlHeader+'<tool_message context_message_id="'+this.getContextName()+'">';
+		var messageString = xmlHeader+'<tool_message context_message_id="'+vars['context_message_id']+'">';
 
 		//<meta>
 		if (!wrapForOLI) {
@@ -354,7 +354,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var now = new Date();
 		var vars=this.logConfiguration;
-		var messageString = this.xmlHeader+'<tutor_message context_message_id="'+this.getContextName()+'">';
+		var messageString = this.xmlHeader+'<tutor_message context_message_id="'+vars['context_message_id']+'">';
 
 		//<meta>
 		if (!wrapForOLI) {
@@ -434,7 +434,7 @@ export default class CTATLogMessageBuilder extends OLIMessageBuilderBase {
 
 		var vars=this.logConfiguration;
 
-		var messageString = xmlHeader+'<message context_message_id="'+this.getContextName()+'">';
+		var messageString = xmlHeader+'<message context_message_id="'+vars['context_message_id']+'">';
 		messageString+=logMessage;
 		messageString+='</message>';
 

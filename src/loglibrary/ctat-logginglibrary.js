@@ -31,9 +31,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	constructor (aConfiguration) {
 		super ("CTATLoggingLibrary","commLoggingLibrary");
 
-		this.logConfiguration=new LogConfiguration(aConfiguration);
-		this.pointer=this;
-
 		// The current version of this LoggingLibrary.
 		this.version="3.Beta";
 
@@ -76,7 +73,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		this.context_name="START_PROBLEM";
 
 		this.logListener=null;
-		
 		this.lastSAI=null;
 		
 		//var gen=new CTATGuid ();
@@ -91,7 +87,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 
     // Make sure we have a session configured in case the developer forgets upon first use
-		this.generateSession ();
+		this.reset(aConfiguration);
 	}
 
 	/**
@@ -240,7 +236,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	 * @param {string} context_message_id a unique id for this student-problem instance
 	 */
 	setContextMessageID(context_message_id) {
-		this.context_message_id=context_message_id;
+		this.logConfiguration['context_message_id']=this.context_message_id=context_message_id;
 	}
 
 	/**
@@ -337,6 +333,20 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		*/
 	}
 
+    /**
+	 * Undo the effect of initCheck() and replace the configuration parameters.
+	 */
+	reset (aConfiguration) {
+		this.commLogMessageBuilder=null;
+		this.logConfiguration=new LogConfiguration(aConfiguration);
+		if(this.logConfiguration['context_message_id']) {
+			this.setContextMessageID(this.logConfiguration['context_message_id']);
+		} else {
+			this.setContextMessageID("C"+this.guidGenerator.guid());  // also sets logConfiguration
+		}
+		this.generateSession ();
+	}
+
 	/**
 	 * Setup all the moving parts of the library. After this you should be good to call any
 	 * of the public log API methods.
@@ -356,7 +366,6 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 			} else {
    				this.commLogMessageBuilder=new CTATLogMessageBuilder (this.logConfiguration);
 			}
-			this.commLogMessageBuilder.setContextName (this.getContextName());
 		}
 	}
 
@@ -429,21 +438,19 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	}
 
 	/**
-	 *
+	 * @return {string} session_id result from logSessionStart
 	 */
 	startProblem () {
 		this.ctatdebug ("startProblem ()");
-
 		this.initCheck ();
-
-		this.logSessionStart ();
-
+		let result = this.logSessionStart ();
 		this.sendMessage (this.commLogMessageBuilder.createContextMessage(true));
+		return result;
 	}
 
 	/**
-	*
-	*/
+	 * @return {string} session_id
+	 */
 	logSessionStart () {
 		this.ctatdebug ("logSessionStart ()");
 
@@ -458,10 +465,10 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 				this.useSessionLog=true;
 			}
 		}
-
 		if (this.useSessionLog===true) {
 			this.sendMessage (this.commLogMessageBuilder.createLogSessionStart(this.logConfiguration));
 		}
+		return this.logConfiguration['session_id'];
 	}
 
 	/**
@@ -586,8 +593,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 	*/
 	start () {
 		this.ctatdebug ("start ()");
-		this.startProblem ();
-		return this.getContextName();
+		return this.startProblem ();
 	}
 
 	/**
@@ -615,7 +621,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.lastSAI=anSAI;
 		
-		var transactionID = this.guidGenerator.guid ();
+		var transactionID = this.makeTransactionID ();
 
 		return this.logSemanticEvent (transactionID,anSAI,"ATTEMPT","");
 	}
@@ -633,7 +639,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 
 		this.lastSAI=sai;
 		
-		var transactionID = this.guidGenerator.guid ();
+		var transactionID = this.makeTransactionID ();
 
 		return this.logSemanticEvent (transactionID,sai,"HINT_REQUEST","");
 	}
