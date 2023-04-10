@@ -185,18 +185,32 @@ export default class OLIMessageBuilderBase extends SimonBase {
   }
 
   /**
-   *
+   * Set custom fields. First argument can be:<ul>
+   *   <li>an object, to add a custom field for each property {name: value}, or</li>
+   *   <li>an array of custom field names, which implies 2nd argument is a 1:1 array of values</li>
+   * </ul>
+   * @param {Object} or [<string>] aCustomFieldNames
+   * @param [<string>] <optional/> aCustomFieldValues
    */
   addCustomFields (aCustomFieldNames,aCustomFieldValues) {
     this.ctatdebug ("addCustomFields ()");
 
-    if ((aCustomFieldNames==undefined) || (aCustomFieldValues==undefined)){
+    if (!aCustomFieldNames) {
       return;
     }
 
-    for (var i=0;i<aCustomFieldNames.length;i++) {
-      this.customFieldNames.push (aCustomFieldNames [i]);
-      this.customFieldValues.push (aCustomFieldValues [i]);
+    if(Array.isArray(aCustomFieldNames)) {
+      if(!aCustomFieldValues || !Array.isArray(aCustomFieldValues)) {
+        return;
+      }
+      for (var i=0;i<aCustomFieldNames.length;i++) {
+        this.customFieldNames.push (aCustomFieldNames [i]);
+        this.customFieldValues.push (aCustomFieldValues [i]);
+      }
+    } else {  // assume aCustomFieldNames is an object: add each property {name: value}
+      for(let k in aCustomFieldNames) {
+        this.addCustomField(k, aCustomFieldNames[k]);
+      }
     }
   }
 

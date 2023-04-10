@@ -485,8 +485,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		sai,
 		semanticEventName,
 		semanticEventSubtype,
-		aCustomFieldNames,
-		aCustomFieldValues,
+		aCustomElementObject,
 		aTrigger
 	) {
 		this.ctatdebug ("logSemanticEvent ("+aTrigger+")");
@@ -499,7 +498,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		var timeStamp = new Date();
 
 		this.commLogMessageBuilder.resetCustomFields ();
-		this.commLogMessageBuilder.addCustomFields (aCustomFieldNames,aCustomFieldValues);
+		this.commLogMessageBuilder.addCustomFields (aCustomElementObject);
 		this.commLogMessageBuilder.addCustomField ("tool_event_time",this.commLogMessageBuilder.formatTimeStamp (timeStamp) + " UTC");
 
 		var message=this.commLogMessageBuilder.createSemanticEventToolMessage(
@@ -532,8 +531,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		anEval,
 		feedBack,
 		aSkillObject,
-		aCustomFieldNames,
-		aCustomFieldValues
+		aCustomElementObject,
 	) {
 		this.ctatdebug("logTutorResponse ()");
 
@@ -544,7 +542,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		var timeStamp =  new Date();
 
 		this.commLogMessageBuilder.resetCustomFields ();
-		this.commLogMessageBuilder.addCustomFields (aCustomFieldNames,aCustomFieldValues);
+		this.commLogMessageBuilder.addCustomFields (aCustomElementObject);
 		this.commLogMessageBuilder.addCustomField ("tutor_event_time",this.commLogMessageBuilder.formatTimeStamp (timeStamp) + " UTC");
 
 		this.ctatdebug("Formatting feedback ...");
@@ -609,7 +607,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		
 		this.lastSAI=sai;
 
-		return this.logSemanticEvent (transactionID,sai,"ATTEMPT","");
+		return this.logSemanticEvent (transactionID,sai,"ATTEMPT","",aCustomElementObject);
 	}
 
 	/**
@@ -623,7 +621,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		
 		var transactionID = this.makeTransactionID ();
 
-		return this.logSemanticEvent (transactionID,anSAI,"ATTEMPT","");
+		return this.logSemanticEvent (transactionID,anSAI,"ATTEMPT","",aCustomElementObject);
 	}
 
 	/**
@@ -641,7 +639,7 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		
 		var transactionID = this.makeTransactionID ();
 
-		return this.logSemanticEvent (transactionID,sai,"HINT_REQUEST","");
+		return this.logSemanticEvent (transactionID,sai,"HINT_REQUEST","",aCustomElementObject);
 	}
 
 	/**
@@ -721,29 +719,16 @@ export default class CTATLoggingLibrary extends OLILogLibraryBase {
 		} else {
 			evalObj.setEvaluation (anEvaluation);
 		}
-
-		if (aCustomElementObject==undefined) {
-			return this.logTutorResponse(
-				transactionID || this.lastToolTxID,
-				anSAI,
-				semanticName,
-				"",
-				evalObj,
-				anAdvice
-			);
-		} else {
-			return this.logTutorResponse(
-				transactionID || this.lastToolTxID,
-				anSAI,
-				semanticName,
-				"",
-				evalObj,
-				anAdvice,
-				null, // Skills object
-				aCustomElementObject.getCustomElementNames (),
-				aCustomElementObject.getCustomElementTypes ()
-			);
-		}
+		return this.logTutorResponse(
+			transactionID || this.lastToolTxID,
+			anSAI,
+			semanticName,
+			"",
+			evalObj,
+			anAdvice,
+			null, // Skills object
+			aCustomElementObject,
+		);
 	}
 
 	/**
